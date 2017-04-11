@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">  
+    <head>
+        <title>Loader</title>
+        <meta charset="UTF-8"/>
+    </head>
+    <body>
+        <div th:fragment="loader" class="off loader">
+            <script>
+                jQuery(window).load(function () {
+                    $(".off").delay(300).fadeOut("slow");
+                });
+            </script>
+            <div th:replace="fragments/util/loader :: inner"/>
+        </div>
+            
+        <div th:fragment="chal-loader" class="chal-loader cloader">   
+            <div th:replace="fragments/util/loader :: inner"/>
+        </div>
+            
+        <div th:fragment="inner" class="loader-centered">
+            <div class="square first"></div>
+            <div class="square1 second"></div>
+            <div class="square2 third"></div>
+        </div>
+    </body>
+</html>

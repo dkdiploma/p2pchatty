@@ -1,0 +1,60 @@
+.cut-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.challenge {
+    margin-bottom: 30px;
+}
+.challenge .chal-photo{
+}
+.challenge .chal-photo-main-page img {
+    width: 100%;
+}
+.challenge .chal-photo img {
+    width: 100%;
+}
+.challenge .chal-photo:hover img:hover {
+
+}
+
+.challenge .chal-photo:hover .overlay-b {
+    visibility: visible;
+}
+.challenge .chal-body h3.chal-title {
+    font-size: 18px;
+    font-weight: normal;
+}
+.challenge .chal-body h3.chal-title a {
+    color: #2c2c2c;
+}
+.challenge .chal-body {
+
+}
+.challenge .chal-body .desc {
+}
+.challenge .chal-body h3.chal-title a:hover {
+    color: #FC2727;
+}
+.challenge .chal-body span {
+    display: inline-block;
+    margin: 10px 0;
+}
+h2.chal-title {
+    font-size: 2em;
+    font-weight: normal;
+}
+span.chal-meta {
+    margin: 10px 0;
+    display: block;
+
+}
+@media screen and (max-width: 768px) {
+    h2.chal-title {
+        font-size: 1.6em;
+    }
+}
+

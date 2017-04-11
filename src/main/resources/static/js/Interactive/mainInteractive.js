@@ -1,0 +1,346 @@
+var interactiveNotification;
+var interactiveLike;
+var interactiveComment;
+
+var Interactive = {
+    stompClient: null,
+    username: null,
+    mainObjectId: null,
+    typeMainObject: null,
+    alreadyTry: false,
+    connect: function () {
+        var socket = new SockJS('/ws');
+        this.stompClient = Stomp.over(socket);
+        this.mainObjectId = $("#mainObjectId").first().val();
+        if ($(".ChallengeDefinitionType").length >= 1) {
+            Interactive.typeMainObject = "ChallengeDefinitionType";
+        } else if ($(".ChallengeInstanceType").length >= 1) {
+            Interactive.typeMainObject = "ChallengeInstanceType";
+        }
+
+        if (jQuery.type(interactiveNotification) === "undefined") {
+            interactiveNotification = false;
+        } else if (jQuery.type(interactiveLike) === "undefined") {
+            interactiveLike = false;
+        } else if (jQuery.type(interactiveComment) === "undefined") {
+            interactiveComment = false;
+        }
+
+
+
+        Interactive.stompClient.connect({'mainObjectId': this.mainObjectId,
+            'interactiveNotification': interactiveNotification,
+            'interactiveLike': interactiveLike,
+            'interactiveComment': interactiveComment
+        }, function (frame) {
+
+            console.log('Connected: ' + frame);
+//            example_webrtc_config.ownUserId = frame.headers['user-name'];
+//            console.log("Initializing WebRTC for user: " + example_webrtc_config.ownUserId);
+//            setConnected();
+//            // send join message to all users
+
+            // subscribe to webrtc conversions in room "demogroup", i.e. to all messages to the topic with room=demogroup
+            // hint: this does not work with spring simple message broker, but only if you attach a full-fledge message broker
+            // simple message broker ignores selectors for subscriptions
+//            console.log("subscribe to /user/exchange/all");
+//            Interactive.stompClient.subscribe("/user/exchange/all", function (frame) {
+//            }, {"selector": "room = '" + example_webrtc_config.room + "'"});
+            // subscribe to private signaling messages from other users
+         //   sendStompMessage({'message': {none: ''}, type: 'JOIN', fromUserID: '', toUserID: ''});
+
+ //sendStompMessage({'message': {none: ''}, type: 'JOIN', fromUserID: '', toUserID: ''});
+
+            Interactive.alreadyTry = false;
+            console.log('Connected: ' + frame);
+            Interactive.username = frame.headers['user-name'];
+
+            console.log("subscribe to /user/exchange/allchat");
+            Interactive.stompClient.subscribe("/user/exchange/allchat", function (resp) {
+                Interactive.chatHandler(resp);
+            });
+
+            console.log("subscribe to /user/exchange/private");
+            Interactive.stompClient.subscribe("/user/exchange/private", function (resp) {
+                Interactive.privateHandler(resp);
+            });
+
+            if (interactiveNotification === true) {
+                console.log("subscribe to /user/exchange/notification");
+                Interactive.stompClient.subscribe("/user/exchange/notification", function (resp) {
+                    Interactive.notificationHandler(resp);
+                });
+            }
+            if (interactiveComment === true) {
+                rtc.connect(document.getElementById('mainObjectId').value);
+                console.log("subscribe to /user/exchange/comment");
+                Interactive.stompClient.subscribe("/user/exchange/comment", function (resp) {
+                    Interactive.commentHandler(resp);
+                });
+            }
+            if (interactiveLike === true) {
+                console.log("subscribe to /user/exchange/like");
+                Interactive.stompClient.subscribe("/user/exchange/like", function (resp) {
+                    Interactive.likeHandler(resp);
+                });
+            }
+        }, function (error) {
+            Interactive.tryConnect();
+        });
+    },
+    tryConnect: function () {
+        if (Interactive.alreadyTry == false) {
+            Interactive.alreadyTry = true;
+            Interactive.connect();
+        } else {
+            setTimeout(function () {
+                console.log("timeout tryConnect");
+                Interactive.connect();
+                //showModal(error, "Connection error", "red");
+            }, 5000);
+        }
+    },
+    chatHandler: function (frame) {
+//        console.log("Received message for all users");
+//        console.log(frame);
+//
+//        var signalingmessage = JSON.parse(frame.body);
+//        // check joins from other users and try to call them
+//        if ((frame.command == 'MESSAGE') && (signalingmessage['fromUserID'] != example_webrtc_config.ownUserId) && (signalingmessage['type'] == 'JOIN')) {
+//            // if equals 'JOIN' send  offer call to other users
+//            console.log('User "' + signalingmessage['fromUserID'] + '" joined chatroom "' + example_webrtc_config.room + '". Trying to establish video/voice chat.... ');
+//            webrtcClient.callChat(signalingmessage['fromUserID']);
+//        }
+//        ;
+    },
+ //   privateHandler: function (frame) {
+//        console.log("Received private message");
+//        console.log(frame);
+//        if (frame.command == 'MESSAGE') {
+//            var signalingmessage = JSON.parse(frame.body);
+//            if (signalingmessage['type'] == 'CALL') {
+//                console.log('User "' + signalingmessage['fromUserID'] + '" calls... Accepting call...');
+//                console.log(signalingmessage);
+//                webrtcClient.answerchat(signalingmessage);
+//            } else if (signalingmessage['type'] == 'ANSWER') {
+//                console.log('User "' + signalingmessage['fromUserID'] + '" answered call...');
+//                console.log(signalingmessage),
+//                        webrtcClient.processSignalingMessage(signalingmessage);
+//            } else if (signalingmessage['type'] == 'SIGNALING') {
+//                console.log('Received signaling message from user "' + signalingmessage['fromUserID'] + '". Processing it...');
+//                console.log(signalingmessage),
+//                        webrtcClient.processSignalingMessage(signalingmessage);
+//            } else {
+//                alert('Unknown signalingmessage');
+//            }
+//        }
+//    },
+    notificationHandler: function (resp) {
+        var obj = JSON.parse(resp.body);
+        if (obj.status === 'SUCCESS') {
+            console.log("get info: " + obj);
+        }
+        var template = $("#notification-candidate").clone();
+        template.removeAttr("id");
+        var storage = $('.mCSB_container');
+        template.prependTo(storage);
+        if (obj.typeNotification == "ChallengeInstance") {
+            showModal(obj.body, $("#challenge-request").val(), "green");
+        } else {
+            showModal(obj.body + " " + $('#friend-notification-msg').val(), $("#friend-request").val(), "green");
+        }
+        this.changeContentNotification(template, obj);
+        console.log("/user/exchange/notification");
+        $('.badge-notify').each(function () {
+            $(this).text(+$(this).text() + 1);
+            $(this).removeClass("notify_hide");
+        });
+        setHeightOfNotificationWindow();
+    },
+    likeHandler: function (resp) {
+        var obj = JSON.parse(resp.body);
+        var up = $('.vote-value[id=' + obj.idOwner + '].vote-thumbs-up');
+        var down = $('.vote-value[id=' + obj.idOwner + '].vote-thumbs-down');
+
+        /* 2  - remove down, 1  - don't remove down
+         -2 - remove up  , -1 - don't remove up*/
+
+        switch (obj.changeVote) {
+            case 2:
+                down.text(+down.text() - 1);
+                down.parent().find('.glyphicon-thumbs-down').removeClass('vote_hide');
+                down.parent().find('.glyphicon-thumbs-down').addClass('vote_show');
+            case 1:
+                up.text(+up.text() + 1);
+                up.parent().find('.glyphicon-thumbs-up').removeClass('vote_show');
+                up.parent().find('.glyphicon-thumbs-up').addClass('vote_hide');
+                break;
+            case - 2:
+                up.text(+up.text() - 1);
+                up.parent().find('.glyphicon-thumbs-up').removeClass('vote_hide');
+                up.parent().find('.glyphicon-thumbs-up').addClass('vote_show');
+            case - 1:
+                down.text(+down.text() + 1);
+                down.parent().find('.glyphicon-thumbs-down').removeClass('vote_show');
+                down.parent().find('.glyphicon-thumbs-down').addClass('vote_hide');
+                break;
+            default:
+                break;
+        }
+    },
+    commentHandler: function (resp) {
+        var obj = JSON.parse(resp.body);
+        if (obj.status === 'SUCCESS') {
+            console.log("get info: " + obj);
+            var storage = null;
+            var template = null;
+            if (obj.idParent == null) {
+                template = $("#templateMainComment").clone();
+                template.find("#templateComment").removeAttr("style");
+                template.find("#templateComment").removeAttr("id");
+                template.removeAttr("style");
+                template.removeAttr("id");
+                storage = $(".comments-list");
+            } else {
+                template = $("#templateComment").clone();
+                template.removeAttr("style");
+                template.removeAttr("id");
+                template.addClass("subcommentList");
+                template.addClass("withShift");
+                storage = $(".comments-list").find("ul[id=" + obj.idParent + "]");
+            }
+
+            template.prependTo(storage);
+            if ($('#current-user-id').val() != obj.userId) {
+                showModal(obj.userName + ": \"" + obj.messageContent + "\"", $('#new-comment-header').val(), "blue");
+            }
+            this.changeContentComment(template, obj);
+            var commentCounter = $("#commentCounter");
+            commentCounter.text(+commentCounter.text() + 1);
+        }
+    },
+    sendLike: function (obj) {
+        var destination = "/app/interactive.like." + this.username;
+        var idMessage = $(obj).parent().find("input[name='id']").val();
+        var changeVote = -1;
+        if ($(obj).hasClass('glyphicon-thumbs-up')) {
+            changeVote = 1;
+        }
+
+        this.stompClient.send(destination, {},
+                JSON.stringify({
+                    'idOwner': idMessage,
+                    'mainObjectId': this.mainObjectId,
+                    'changeVote': changeVote,
+                    'typeMain': this.typeMainObject}));
+    },
+    sendComment: function (obj) {
+        var destination = "/app/interactive.comment." + this.username;
+        var parent = $(obj).parent();
+        var messageInp = parent.find("input[type=text]").first();
+        if (messageInp.val().trim().length < 3 || messageInp.val().length > 250) {
+            $(obj).parent().find(".commentError").show("slow");
+        } else {
+            $(obj).parent().find(".commentError").hide("slow");
+            var idParent = null;
+            if (parent.find("input[name=idMainObject]").first().size() !== 1) {
+                idParent = parent.find("input[name=id]").first().val();
+            }
+
+            ObjSaved = JSON.stringify({
+                'idParent': idParent,
+                'mainObjectId': this.mainObjectId,
+                'messageContent': messageInp.val(),
+                'typeMain': this.typeMainObject});
+            this.stompClient.send(destination, {},
+                    ObjSaved);
+            messageInp.val("");
+            if (idParent != null) {
+                $('.last-div#reply' + idParent).hide();
+            }
+        }
+    },
+    changeContentNotification: function (cont, obj) {
+        $(cont).find('#message-content').text(obj.body);
+        if (obj.description != null) {
+            $(cont).find("#message-header").text(obj.description);
+        }
+        $(cont).find('#redirect-form input[name="id"]').val(obj.targetId);
+        $(cont).find('#accept-form input[name="id"]').val(obj.requestId);
+        $(cont).find('#decline-form input[name="id"]').val(obj.requestId);
+        if (obj.typeNotification == "FriendRequest") {
+            $(cont).find('#redirect-form').attr("action", "/profile");
+            $(cont).find('#accept-form').attr("action", "/addFriend");
+            $(cont).find('#decline-form').attr("action", "/removeRequest");
+            $(cont).find("#message-part-2").text(" " + $('#friend-notification-msg').val());
+        } else {
+            $(cont).find('#message-part-1').text(obj.extraInfo + " " + $('#chal-notification-msg').val() + " ");
+            $(cont).find('#accept-form').attr("action", "/accept");
+            $(cont).find('#decline-form').attr("action", "/decline");
+            $(cont).find('#redirect-form').attr("action", "/challenge/information");
+        }
+
+    },
+    changeContentComment: function (cont, obj) {
+        var mediaBody = $(cont).find("div[class='media-body']").first();
+        var mediaLeft = $(cont).find("div[class='media-left']").first();
+        $(mediaLeft).find('img')[0].src = obj.avatarImage;
+        $(cont).find("ul").attr("id", obj.messageId);
+        $(mediaBody).find("form[action='/profile']")
+                .attr("id", "comment_form" + obj.messageId);
+        $(mediaBody).find("form[action='/profile']")
+                .find("input[name='id']")
+                .attr("value", obj.userId);
+        $(mediaBody).find("form[action='/profile']")
+                .find("a").text(obj.userName);
+        if (obj.toWhom != null) {
+            $(mediaBody).find("form[action='/profile']")
+                    .find("small").text('To ' + obj.toWhom).addClass("embedenceShowToWhom");
+        }
+        //onclick, username
+
+        $(mediaBody).find("p").first().text(obj.messageContent)
+
+        var lastDiv = $(cont).find("div[class='last-div']").first();
+        $(lastDiv).attr("id", "reply" + obj.messageId);
+        $(lastDiv).find("input[name='id']").attr("value", obj.messageId);
+        $(lastDiv).find("form").submit(function (event) {
+            Interactive.sendComment(event.target);
+            return false;
+        });
+        $(mediaBody).find("small").find("a").click(function () {
+            $(lastDiv).toggle();
+        });
+        var newreplyForm = $(lastDiv).find("form[action='/newreply']").first()
+
+        //newreplyForm.find("input[name='_csrf']").val(username);
+        newreplyForm.find("input[name='id']").first().val(obj.messageId);
+        var voteFor = $(mediaBody).find("form[action='/comment/voteFor']");
+        var voteAgainst = $(mediaBody).find("form[action='/comment/voteAgainst']");
+        voteFor.find("input[name='id']").attr("value", obj.messageId);
+        voteFor.find(".vote-value").attr("id", obj.messageId);
+        voteFor.find(".send-vote").click(function (event) {
+            Interactive.sendLike(event.target);
+            return false;
+        });
+        if ($("#templateMainComment").find('div').find('.media-body').find('form').find('input').val() == obj.userId) {
+            voteFor.find(".send-vote").removeClass('vote_show');
+            voteFor.find(".send-vote").addClass('vote_hide');
+            voteAgainst.find(".send-vote").removeClass('vote_show');
+            voteAgainst.find(".send-vote").addClass('vote_hide');
+        }
+        voteAgainst.find("input[name='id']").attr("value", obj.messageId);
+        voteAgainst.find(".vote-value").attr("id", obj.messageId);
+        voteAgainst.find(".send-vote").click(function (event) {
+            Interactive.sendLike(event.target);
+            return false;
+        });
+    },
+    disconnect: function () {
+        if (Interactive.stompClient != null) {
+            Interactive.stompClient.disconnect(function () {
+            });
+        }
+        console.log("Disconnected");
+    }
+}

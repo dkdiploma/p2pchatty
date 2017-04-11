@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+        <title>Users</title>
+        <link rel="icon" type="image/png" href="images/infiLogo.png"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="../js/jquery.min.js"></script>
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+        <link rel="stylesheet" href="../css/pageLoader.css"/>
+        <link rel="stylesheet" href="../css/style.css"/>
+
+        <meta property="og:title" content="Challenge" />
+        <meta property="og:image" content="http://goalsinfinite.com/wp-content/uploads/2016/04/the-challenge.png" />
+        <meta property="og:site_name" content="netchallenge" />
+        <meta property="og:description" th:content="Challenge" />     
+
+    </head>
+
+    <body>
+        <div th:replace="fragments/header::userInfo"/>
+        <div th:replace="fragments/util/loader::loader"/>
+        <div class="content-wrapper">
+            <div class="inner-container container" style="margin-top: 40px;">
+                <div>
+                    <h1 th:text="#{usersTitle}"/>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="chalShowChallenge" style="padding-top: 20px;">
+                            <input type="hidden" id="add-friend-text" th:value="#{addFriendButton}" />
+                            <input type="hidden" id="friend-label" th:value="#{friendLabel}" />
+                            <input type="hidden" id="incoming-request-label" th:value="#{incomingRequestLabel}" />
+                            <input type="hidden" id="outgoing-request-label" th:value="#{outgoingRequestLabel}" />
+                            <form class="input-group">
+                                <input type="hidden" id="csrf-token" name="_csrf" th:value="${_csrf.token}" />
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </span>
+                                <input class="form-control" id="users-filter" th:placeholder="#{usersSearchPlaceholder}" type="text" />
+                            </form>
+                            <form th:unless="${showingAllUsers}" method="GET" action="/users" style="margin: 10px 0px;">
+                                <a th:text="#{showAllUsersLink}" onclick="this.parentNode.submit();"/>
+                            </form>
+                            <form th:if="${showingAllUsers}" action="users/notFriends" style="margin: 10px 0px;">
+                                <a th:text="#{showNotFriendsLink}" onclick="this.parentNode.submit();"/>
+                            </form>
+                            <input type="hidden" th:value="${curUser.getId()}" id="user-id" />
+                            <div class="list-content">
+                                <ul id="list-users" class="list-group">
+                                    <li th:each="user : ${users}" class="list-group-item text-left">
+                                        <img class="img-thumbnail" style="width: 80px; height: 80px; display: inline-block;" th:src="${user.getMainImageEntity().getBase64()}" />
+                                        <form style="display: inline-block;" method="GET" action="/profile">
+                                            <input type="hidden" name="id" th:value="${user.getId()}" />
+                                            <h3><a th:text="${user.getName()}" class="name" onclick="this.parentNode.parentNode.submit();" /></h3>
+                                        </form>
+                                        <div class="right-button" th:if="${!curUser.equals(user)}">
+                                            <form th:if="${!curUser.getFriends().contains(user) and !curUser.getIncomingFriendRequestSenders().contains(user) and !user.getIncomingFriendRequestSenders().contains(curUser)}" method="GET" action="/sendFriendRequest">
+                                                <input type="hidden" name="id" th:value="${user.getId()}" />
+                                                <input type="submit" class="btn btn-default add-friend-button" th:value="#{addFriendButton}" />
+                                            </form>
+                                            <h3 th:if="${curUser.getFriends().contains(user)}">
+                                                <span class="label label-info" th:text="#{friendLabel}" />
+                                            </h3>
+                                            <h3 th:if="${user.getIncomingFriendRequestSenders().contains(curUser)}">
+                                                <span class="label label-info" th:text="#{outgoingRequestLabel}" />
+                                            </h3>
+                                            <h3 th:if="${curUser.getIncomingFriendRequestSenders().contains(user)}">
+                                                <span class="label label-info" th:text="#{incomingRequestLabel}" />
+                                            </h3>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div>
+        <div th:replace="fragments/customModal::modalBody" />
+
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+        <script src="../js/csslayoutextenders/mainPageLayout.js"></script>
+        <script src="../js/responsiveLayout/plugins.js"></script>
+        <script src="../js/responsiveLayout/chalAnimating.js"></script>
+        <script src="../js/ajaxSearch.js"></script>
+    </body>
+</html>

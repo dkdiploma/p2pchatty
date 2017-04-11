@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <link rel="icon" type="image/png" href="images/infiLogo.png"/>
+        <link rel="stylesheet" href="css/pageLoader.css" />
+        <title th:text="#{profilePageTitle}"></title>
+        <script src="js/jquery.min.js"></script>  
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+        <link rel="stylesheet" href="../css/footer.css" />
+
+        <meta property="og:title" content="Chat" />
+          
+
+    </head>
+    <body>
+        <div th:replace="fragments/header::userInfo" />
+        <div th:replace="fragments/util/loader::loader"/>
+        <div class="container">
+            <div style="margin-top: 40px;" >
+                <h1 class="" th:text="${userProfile.getName()}+' ('+${userProfile.getRating()}+')'" style='display: inline-block;'/>   
+            </div>
+            <hr style="margin-bottom: 20px;" class="hr_divider"/>
+            <div class="row" >
+                <!-- left side -->
+                <div  class="parentForAff col-md-4 col-sm-6 col-xs-12">     
+                    <div class="wrap fixed_profile_info" data-spy="affix" data-offset-top="120">
+                        <div class="chalShowChallenge">
+                            <div class="row">
+                                <script th:unless="${#httpServletRequest.getParameter('social_addConnection_duplicate') == null}">
+                                    // после полной загрузки страницы
+                                    $(window).load(function () {
+                                        // вызываем метод setInterval, который будет вызывать модальное окно каждые 5 минут, если оно не открыто
+                                        // Если окно не открыто (т.е. не имеет класс in)
+                                        if (!$("#myModal").hasClass("in")) {
+                                            // то открыть модальное окно 
+                                            $("#myModal").modal('show');
+                                        }
+                                    });
+                                </script>
+                                <div id="myModal" class="modal fade">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header"><button class="close" type="button" data-dismiss="modal">×</button>
+                                                <h4 class="modal-title"  th:text="#{duplicateSNHeader}">Заголовок окна</h4>
+                                            </div>
+                                            <div class="modal-body" th:text="#{duplicateSNMessage}" >Данный клиент уже подключен к соц сети</div>
+                                            <div class="modal-footer"><button class="btn btn-default" type="button" data-dismiss="modal" th:text="#{duplicateSNClock}" >Закрыть</button></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="avatar-image">
+                                    <img style="width: 100%;" class="img-rounded" th:src="${userProfile.getMainImageEntity().getBase64()}"  />
+                                </div>
+                                <form name="submitForm" th:id="'throw_challenge_form'" method="GET" action="friends">
+                                    <input type="hidden" id="user-id" name="id" th:value="${userProfile.getId()}" />
+                                    <input class="underAvatarButton" type="submit" th:value="#{profileFriendsButton}" />
+                                </form>
+                                <form auth:can="EDIT_PROFILE" method="GET" action="profile/edit" >
+                                    <input type="hidden" th:value="${userProfile.getId()}" name="id"/>
+                                    <input th:title="#{editProfileHint}" class="underAvatarButton" type="submit" th:value="#{profileSettingsButton}" />
+                                </form>
+                                <input type="hidden" name="id" th:value="${userProfile.getId()}" />
+                                <input auth:can="THROW_CHALLENGE_FOR_USER"
+                                       name="throw" type="submit" data-target="#modal-challenges" 
+                                       data-toggle="modal" class="underAvatarButton" th:value="#{profileThrowChallengeButton}" />
+                                <form auth:can="ADD_FRIEND" method="GET" action="/sendFriendRequest">
+                                    <input type="hidden" name="id" th:value="${userProfile.getId()}" />
+                                    <input type="submit" class="underAvatarButton add-friend-button" th:value="#{addFriendButton}" />
+                                </form>
+                                <div th:replace="fragments/util/bind::bindedSocialNetworks" th:remove="tag"/>                 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- right side -->
+
+                <div class=" col-md-8 col-lg-8 col-sm-6 col-xs-12">
+                    <div auth:can="EDIT_PROFILE" th:if="${possibleFriends.size()>0}" class="chalShowChallenge" style="padding-left: 0px;padding-right: 0px;padding-bottom: 0px;">
+                        <div class="row">
+                            <div class="row" style="margin-left: 5px;margin-right: 0px;">
+                                <h3 class="col-lg-8 col-md-8 col-sm-9 col-xs-9" style="margin-top: 5px; margin-bottom: 5px;" th:text="#{possibleFriendsLabelShow}" />
+                                <form  th:if="${possibleFriendsExtendence}" th:id="'show_all_possibleFriends'" method="GET" action="/possibleFriends">
+                                    <input type="hidden" id="chal-id" name="id" th:value="${userProfile.getId()}" />
+                                    <div style="margin-top:13px;margin-right: 20px;cursor: pointer;" class="pull-right"> 
+                                        <i class="glyphicon glyphicon-new-window"> </i>
+                                        <span style="cursor: pointer"  onclick="this.parentNode.parentNode.submit()" th:text="#{showAllAcceptorsLabel}"></span>
+                                    </div>
+                                </form>
+                            </div>
+                            <div th:each="possibleFriend : ${possibleFriends}" >
+                                <div class="col-lg-2 col-md-2 col-sm-4 col-xs-4">
+                                    <div>
+                                        <div style="max-width: 50px;max-height:50px;  margin-left: auto;                                             margin-right: auto;">
+                                            <form action="/profile">
+                                                <img style="cursor: pointer" onclick="this.parentNode.submit()" th:src="${possibleFriend.getCommentImageEntity().getBase64()}" class="img-rounded img-responsive" />
+                                                <input type="hidden" th:value="${possibleFriend.getId()}" name="id"/>
+                                            </form>
+                                        </div>
+                                        <span  class="text-center chal-meta" th:text="${possibleFriend.getName()}"></span>                                      
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chalShowChallenge" style="padding-left: 0px;padding-right: 0px;padding-bottom: 0px;">
+
+                        <div class="panel-group" id="accordion">
+                            <!-- 1 панель -->
+                            <div class="panel panel-default">
+
+                                <!-- Заголовок 1 панели -->
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a class="firstCollapsable" data-toggle="collapse" data-parent="#accordion" th:text="#{listOfAcceptedChalsTitle}" href="#collapseOne"></a>
+                                    </h4>
+                                </div>
+                                <div id="collapseOne" class="panel-collapse collapse">
+                                    <!-- Содержимое 1 панели -->
+                                    <div class="panel-body">
+                                        <h2 class="text-center" th:text="#{listOfAcceptedChalsTitle}"></h2>
+                                        <div class="text-center chalList">
+                                            <div th:each="chat : ${listOfChats}" class="elementOfListInProfile">
+                                                <div th:replace="fragments/util/loader::chal-loader"/>
+                                                <div style="border-width: 5" class="panel panel-default">
+                                                    <div class="box-content panel-body ">
+                                                        <div th:replace="fragments/modelElementsViews/chatImageAndBody :: chatPanel(${chat})" th:remove="tag"  /> 
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h4 th:if="${listOfChats.size() == 0}" th:text="#{noAcceptedChallengesMsg}"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 2 панель -->
+                            <div  auth:can="WATCH_UNACCEPTED_CHALLENGES"  class="panel panel-default">
+                                <!-- Заголовок 2 панели -->
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a data-toggle="collapse" data-parent="#accordion" th:text="#{listOfUnacceptedChalsTitle}" href="#collapseTwo"></a>
+                                    </h4>
+                                </div>
+                                <div id="collapseTwo" class="panel-collapse collapse">
+                                    <!-- Содержимое 2 панели -->
+                                    <div class="panel-body">
+                                        <h2 class="text-center" th:text="#{listOfUnacceptedChalsTitle}"></h2>
+                                        <div class="text-center chalList">
+                                            <div th:each="chat: ${listOfCreatedChats}" class="elementOfListInProfile">
+                                                <div th:replace="fragments/util/loader::chal-loader"/>
+                                                <div style="border-width: 5" class="panel panel-default">
+                                                    <div class="box-content panel-body ">
+                                                        <div th:replace="fragments/modelElementsViews/chatImageAndBody :: chatPanel(${chat})" th:remove="tag"  /> 
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <h4 th:if="${listOfCreatedChats.size() == 0}" th:text="#{noNewChallengesMsg}"></h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 3 панель -->
+                            <!--                            <div class="panel panel-default">
+                                                             Заголовок 3 панели 
+                                                            <div class="panel-heading">
+                                                                <h4 class="panel-title">
+                                                                    <a  data-toggle="collapse" data-parent="#accordion" th:text="#{listOfCreatedChalsTitle}" href="#collapseThree"></a>
+                                                                </h4>
+                                                            </div>
+                                                             Содержимое 3 панели 
+                                                            <div id="collapseThree" class="panel-collapse collapse">
+                                                                <div class="panel-body">
+                                                                    <h2 class="text-center" th:text="#{listOfCreatedChalsTitle}"></h2>
+                                                                    <div class="text-center chalList">
+                                                                        <div th:each="challenge : ${listOfDefined}" class="elementOfListInProfile">
+                                                                            <div th:replace="fragments/util/loader::chal-loader"/>
+                                                                            <div th:replace="fragments/challengeViews/createdChallenge::createdChallenge(challenge=${challenge})" th:remove="tag"/>
+                                                                        </div>
+                                                                    </div>
+                                                                    <h4 th:if="${listOfDefined.size() == 0}" th:text="#{noCreatedChallengesMsg}"></h4>
+                                                                </div>
+                                                            </div>
+                                                        </div>-->
+                            <!-- 4панель -->
+                            <!--                            <div class="panel panel-default">
+                                                             Заголовок 4 панели 
+                                                            <div class="panel-heading">
+                                                                <h4 class="panel-title">
+                                                                    <a data-toggle="collapse" data-parent="#accordion" th:text="#{listOfSubscriptionChalsTitle}" href="#collapseFour"></a>
+                                                                </h4>
+                                                            </div>
+                                                            <div id="collapseFour" class="panel-collapse collapse">
+                                                                 Содержимое 4 панели 
+                                                                <div class="panel-body">
+                                                                    <h2 class="text-center" th:text="#{listOfSubscriptionChalsTitle} "></h2>                                           
+                                                                    <div class="text-center chalList">
+                                                                        <div th:each="challenge : ${listOfSubscripted}" class="elementOfListInProfile">
+                                                                            <div th:replace="fragments/util/loader::chal-loader"/>
+                                                                            <th:block th:unless="${isChalDef}">
+                                                                                <h3 th:if="${challenge.getStatus() ==
+                                                                                    T(challenge.dbside.models.status.ChallengeInstanceStatus).PUT_TO_VOTE}"
+                                                                                    style="display: inline-block; float: right;">
+                                                                                    <span class="label label-info"
+                                                                                          th:text="#{putToVoteLabel}" />
+                                                                                </h3>
+                                                                                <h3 th:if="${challenge.getStatus() ==
+                                                                                    T(challenge.dbside.models.status.ChallengeInstanceStatus).COMPLETED}"
+                                                                                    style="display: inline-block; float: right;">
+                                                                                    <span class="label label-success"
+                                                                                          th:text="#{competedChallengeLabel}" />
+                                                                                </h3>
+                                                                                <h3 th:if="${challenge.getStatus() ==
+                                                                                    T(challenge.dbside.models.status.ChallengeInstanceStatus).FAILED}"
+                                                                                    style="display: inline-block; float: right;">
+                                                                                    <span class="label label-danger"
+                                                                                          th:text="#{failedChallengeLabel}" />
+                                                                                </h3>
+                                                                            </th:block>
+                                                                            <div style="border-width: 5" class="panel panel-default">
+                                                                                <div class="box-content panel-body ">
+                                                                                    <div th:replace="fragments/modelElementsViews/challengeImageAndBody :: challengePanel(${challenge})" th:remove="tag"  /> 
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <h4 th:if="${listOfSubscripted.size() == 0}" th:text="#{noSubscriptedChallengesMsg}"></h4>
+                                                                </div>
+                                                            </div>
+                                                        </div>-->
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--modal for friends-->
+        <div th:replace="fragments/modals/friendsmodal::friendsmodal" />
+        <!--modal for challenges-->
+        <!--        <div th:replace="fragments/modals/challengesmodal::challengesmodal" />-->
+        <div th:replace="fragments/customModal::modalBody" />
+
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+        <script src="js/csslayoutextenders/profileLayout.js"></script>
+        <script src="js/csslayoutextenders/langSwitcherLayout.js"></script>
+        <script src="js/responsiveLayout/plugins.js"></script>
+        <script src="js/responsiveLayout/chalAnimating.js"></script>
+        <script src="js/responsiveLayout/tabs.js"></script>
+        <script src="js/ajaxSearch.js"></script>
+        <div th:replace="fragments/footer::footer"/>
+
+    </body>
+</html>
+

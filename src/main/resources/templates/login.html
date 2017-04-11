@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>Login page</title>
+        <link rel="icon" type="image/png" href="images/infiLogo.png"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+        <script src="js/jquery.min.js"></script>
+    </head>
+    <body>
+        <div th:replace="fragments/header::userInfo"/>
+        <div th:replace="fragments/util/loader::loader"/>
+        <div style=" margin-top: 40px; " class="container">
+            <h1 th:text="#{signInWith}" style="margin-bottom:0px;"></h1>
+            <div  class="social-icon-container">
+                <a th:href="@{/auth/vkontakte}" class="btn-sm"><i class="fa fa-vk social-icons vk-icon"></i></a>
+            </div>
+            <div class="social-icon-container">
+                <a th:href="@{/auth/facebook}" class="btn-sm"><i class="fa fa-facebook social-icons facebook-icon"></i></a>
+            </div>
+            <div class="social-icon-container">
+                <a th:href="@{/auth/twitter}" class="btn-sm" ><i  class="fa fa-twitter  social-icons twitter-icon"></i></a>
+            </div>
+            <div class="social-icon-container">
+                <a th:href="@{/auth/github}" class="btn-sm"><i class="fa fa-github social-icons github-icon"></i></a>
+            </div>
+            <div th:include="fragments/exception :: errorInfo"/>
+        </div>
+        <script src="../js/csslayoutextenders/loginLayout.js"></script>
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+    </body>
+</html>

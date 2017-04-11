@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title th:text="#{profilePageTitle}"></title>
+        <link rel="icon" type="image/png" href="../images/infiLogo.png"/>
+        <script src="../js/jquery.min.js"></script>  
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+    </head>
+    <body>
+        <div th:replace="fragments/header::userInfo" />
+        <div th:replace="fragments/util/loader::loader"/>
+        <div class="content-wrapper">
+            <div class="inner-container container">
+                <form action="/profile" th:object="${userProfile}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="csrf-token"/>
+                    <div style="margin-top: 40px; " class="row">
+                        <div class="section-header col-md-12">
+                            <h1 th:text="#{profileSettingsButton}"/>
+                        </div> 
+                    </div> 
+                    <div class="column">
+                        <div class="chalShowChallenge" style="padding-top: 15px;">
+                            <div class="row">
+                                <h1 th:text="#{editingTitle}" />
+                                <div class="col-md-12">
+                                    <input type="hidden" th:field="*{id}" />
+                                    <label th:text="#{nameLabel}" class="col-md-2 control-label" />
+                                    <div class="chal-photo col-md-10">
+                                        <input maxlength="" class="form-control" type="text" th:placeholder="#{namePlaceholder}"  th:field="*{name}" />
+                                    </div>
+                                    <label th:text="#{photoLabel}" class="col-md-2 control-label" />
+                                    <div class="chal-photo col-md-10"> 
+                                        <div >
+                                            <img th:src="${userProfile.getMainImageEntity().getBase64()}" alt="" id="new-image" style="width: 100%;"/>
+                                        </div>
+                                        <div style="margin: 10px 0px;">
+                                            <input type="button" class="btn btn-default" data-target="#modal-user-images" id="new-image-btn"
+                                                   data-toggle="modal" th:value="#{changeImageButton}" style="cursor:pointer; color: black; top: 10px;" />
+                                        </div>
+                                        <input type="hidden" id="image-size-error" th:value="#{imageSizeError}" />
+                                        <input type="hidden" name="image" />
+                                    </div>
+                                </div> 
+                                <div> 
+                                    <input class="btn btn-default text-center" type="submit" name="k" th:value="#{updateButton}" style="float: right;"/>
+                                    <input type="button"  class="btn btn-default col-xs-3" onclick="javascript:history.back()"  th:value="#{backButton}"  style="float: left;"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form> 
+                <div class="column">
+                    <div class="chalShowChallenge">
+                        <div class="row">
+                            <div th:replace="fragments/util/bind::bindSocialNetwork" th:remove="tag"/>  
+                        </div>
+                    </div> 
+                </div>
+                <div class="column">
+                    <div class="chalShowChallenge">
+                        <div class="row">
+                            <h1 th:text="#{changeLangTitle}" />
+                            <form  method="GET" th:action="@{../changelang}">
+                                <button name="lang" type="submit" th:value="en" class="lang-button col-md-6">English</button>
+                                <button  name="lang" type="submit" th:value="ru" class="lang-button col-md-6">Russian</button>
+                            </form>
+                        </div>
+                    </div>
+                </div> 
+            </div> 
+        </div>
+
+        <div th:replace="fragments/modals/userImagesModal::userimagesmodal" />
+        <div th:replace="fragments/customModal::modalBody" />
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+        <script src="../js/csslayoutextenders/profileEditLayout.js"></script>
+        <script src="../js/csslayoutextenders/langSwitcherLayout.js"></script>
+        <script src="../js/throwsChallenges/show.js"></script>
+        <script src="../js/responsiveLayout/plugins.js"></script>
+        <script src="../js/responsiveLayout/chalAnimating.js"></script>
+        <script src="../js/dateAndImageHelper.js"></script>
+    </body>
+</html>
+

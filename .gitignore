@@ -1,0 +1,13 @@
+/.nb-gradle/
+/build/
+/.gradle/
+*.iml
+.idea/
+/out/
+repository.xml
+repository/
+src/main/webapp/
+/ChallengeTest/.nb-gradle/
+/ChallengeTest/
+/derby.log
+/log.out

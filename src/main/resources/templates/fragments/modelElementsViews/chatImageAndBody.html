@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8"/>
+    </head>
+    <body>
+        <th:block th:fragment="chatPanel(chat)" >
+                <div class="chal-photo-main-page"> 
+                    <img style="cursor: pointer;" class="img-rounded" th:src="${chat.getMainImageEntity().getBase64()}" alt="" th:onclick="'document.getElementById(\'chat_form'+${chat.getId()}+'\').submit();'"/> 
+                </div>
+                <div class="chal-body">
+                    <form name="submitForm" th:id="'chat_form'+${chat.Id}"  method="GET" action="/chat/information">
+                        <input type="hidden" name="id" th:value="${chat.getId()}"/>
+                        <h2 class="chal-title"><a  th:onclick="'document.getElementById(\'chat_form'+${chat.getId()}+'\').submit();'" th:text="${chat.getName()}"></a></h2>
+                    </form>
+                  
+                    <span style="display: block;" class="chal-meta" th:text="${#dates.format(chat.date, 'yyyy/MM/dd HH:mm')}"></span>
+                    <h4 class="cut-text ellipsis desc" th:text="${chat.getDescription()}"></h4>
+                </div>
+        </th:block>
+    </body>
+</html>

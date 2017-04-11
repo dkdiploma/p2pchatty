@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Challenge</title>
+        <link rel="icon" type="image/png" href="../images/infiLogo.png"/>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="../js/jquery.min.js"></script>
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+        <link rel="stylesheet" href="../css/bootstrap-datetimepicker.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css" />
+    </head>
+    <body>
+        <div th:replace="fragments/header :: userInfo"/>
+        <div th:replace="fragments/util/loader::loader"/>
+        <div class="content-wrapper">
+            <div class="inner-container container">
+                <form   th:action="@{information}" th:object="${chat}" method="post">
+                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" id="csrf-token"/>
+                    <input type="hidden" id="image-size-error" th:value="#{imageSizeError}" />                  
+                    <div style="margin-top: 40px; " class="row">
+                        <div class="section-header col-md-12">
+                        </div> 
+                    </div> 
+                    <div class="row">
+                        <div th:switch="*{id}"> 
+                            <h1 th:text="#{addingTitle}" th:case="null" />
+                            <h1 th:text="#{updatingTitle}" th:case="*" /> 
+                        </div>
+                        <div class="col-md-12">
+                            <div class="chalShowChallenge" style="padding-top:15px;">
+                                <div class="row">
+                                    <input type="hidden" th:field="*{id}" />
+                                    <label th:text="#{titleLabel}" class="col-md-2 control-label" />
+                                    <div class="chal-photo col-md-10">
+                                        <input  class="form-control" type="text" th:placeholder="#{titlePlaceholder}"  th:field="*{name}" />
+                                        <div class="alert alert-danger" th:if="${#fields.hasErrors('name')}">
+                                            <p  th:errors="*{name}">Name Error</p>    
+                                        </div>
+                                    </div>
+                                    <label th:text="#{descriptionLabel}" class="col-md-2 control-label" />
+                                    <div class="chal-photo col-md-10">
+                                        <h4><textarea  maxlength="254"  class="form-control"  cols="40" rows="5" th:placeholder="#{descriptionPlaceholder}"  th:field="*{description}" /></h4>
+                                        <div class="alert alert-danger" th:if="${#fields.hasErrors('description')}">
+                                            <p  th:errors="*{description}">Name Error</p>    
+                                        </div>
+                                    </div>
+
+                                    <label th:text="#{imageLabel}" class="col-md-2 control-label" />
+                                    <div th:if="${chat.getId() != null}" class="chal-photo col-md-10">
+                                        <div style="width: 300px;">
+                                            <img th:src="${chat.getMainImageEntity().getBase64()}" alt="" id="new-image" style="width: 100%;"/>
+                                        </div>
+                                        <input type="button" class="btn btn-default" data-target="#modal-challenge-images" id="new-image-btn"
+                                               data-toggle="modal" th:value="#{changeImageButton}" style="cursor:pointer; color: black; margin: 10px 0px;" />
+                                        <input type="hidden" name="image" />
+                                    </div>
+                                    <div th:if="${chat.getId() == null}" class="chal-photo col-md-10">
+                                        <input type="button" th:value="#{uploadImageButton}" id="upload-file-btn" class="btn btn-default" />
+                                        <input type="file" name="pic" accept="image/*" id="input-file" style="display: none;"/>
+                                        <p class="image-name" style="display: inline-block;" th:utext="${imageName}"/>
+                                        <p style="display: inline-block; color: black;" th:text="#{maxSizeHint}" />
+                                        <input id="image-name" type="hidden" th:value="${imageName}"  name="image-name" />
+                                        <input type="hidden" th:value="${image64}"  name="image" />
+                                    </div>
+                                    <div class="chal-photo col-md-12"> 
+                                        <span/>
+                                    </div>  
+                                    <label th:text="#{descriptionLabel}" class="col-md-2 control-label" />
+                                    <input type="checkbox" th:field="*{isToPersist}" />
+                                </div>
+                                <form id="search-form">
+                                    <input type="hidden" id="csrf-token" name="_csrf" th:value="${_csrf.token}" />
+                                    <input type="text" id="filter-friends" th:placeholder="#{friendsFilter}" style="width: 100%;"/>
+                                </form>
+                                <div class="well" style="max-height: 300px; overflow: auto;">
+                                    <ul id="friends-list" class="list-group checked-list-box">
+                                        <li class="list-group-item" th:each="friend : ${friends}">
+                                            <input type="hidden" th:value="${friend.getId()}" name="id"/>
+                                            <input type="checkbox" name="check"/>
+                                            <label  th:text="${friend.getName()}"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+
+                            <div th:switch="*{id}"> 
+                                <input th:case="null" class="btn btn-default text-center" type="submit" name="k" th:value="#{createNewButton}" style="float: right;"/>
+                                <input th:case="*" class="btn btn-default text-center" type="submit" name="k" th:value="#{updateButton}" style="float: right;"/>
+                                <input type="button" class="btn btn-default" onclick="javascript:history.back()"  th:value="#{backButton}"  style="float: left;"/>        
+                            </div>
+                        </div> 
+                    </div>
+
+                </form>             
+            </div> 
+        </div>
+
+        <div th:replace="fragments/modals/challengeImagesModal::challengeimagesmodal" />
+        <div th:replace="fragments/customModal::modalBody" />
+
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+        <script type="text/javascript" src="../js/moment-with-locales.min.js"></script>
+        <script type="text/javascript" src="../js/moment.js"></script>
+        <script src="../js/bootstrap-datetimepicker.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+        <script src="../js/dateAndImageHelper.js"></script>
+    </body>
+</html>
