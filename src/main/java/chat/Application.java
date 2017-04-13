@@ -10,7 +10,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import chat.dbside.ini.InitialLoader;
-import chat.interactivemessaging.SignalHandler;
 import chat.webside.imagesstorage.ImageStoreService;
 
 import org.slf4j.Logger;
@@ -21,7 +20,7 @@ import org.slf4j.LoggerFactory;
 @ComponentScan
 public class Application extends SpringBootServletInitializer {
 
-   // private static InitialLoader initiator;
+//    private static InitialLoader initiator;
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
 //    @Autowired
@@ -46,7 +45,7 @@ public class Application extends SpringBootServletInitializer {
 //        SignalHandler signalHandler = new SignalHandler(port);
 //        signalHandler.start();
 //        System.out.println("Server listen on :" + port);
-        //  initiator.initial();
+     //   initiator.initial();
         logger.info("successfully start");
     }
 

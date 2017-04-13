@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@ComponentScan({ "challenge" })
+@ComponentScan({ "chat" })
 @PropertySource(value = { "classpath:application.properties" })
 public class HibernateConfiguration {
 	
@@ -29,7 +29,7 @@ public class HibernateConfiguration {
     public LocalSessionFactoryBean sessionFactory() {
     	LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
         sessionFactory.setDataSource(dataSource());
-        sessionFactory.setPackagesToScan(new String[] { "challenge" });
+        sessionFactory.setPackagesToScan(new String[] { "chat" });
         sessionFactory.setHibernateProperties(hibernateProperties());
         return sessionFactory;
      }

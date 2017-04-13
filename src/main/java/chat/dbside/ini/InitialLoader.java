@@ -43,7 +43,7 @@ public class InitialLoader {
         if (version == null) {
             iniFlag = true;
             version = new PropertyDB("version", "0");
-            init(1, 2, 2, 4, 7);
+           // init(1, 2, 2, 4, 7);
             serviceProperty.save(version);
         }
         Integer nVersion = Integer.valueOf(version.getValue());

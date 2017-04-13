@@ -62,7 +62,7 @@ public class ChatUtil {
 //        return filteredChallenges;
 //    }
     public void throwChat(int userId, User currentUser, int challengeId, String message) {
-        Chat chal = (Chat) serviceEntity.findById(challengeId, Chat.class);
+        Chat chat = (Chat) serviceEntity.findById(challengeId, Chat.class);
         User user = (User) serviceEntity.findById(userId, User.class);
 
         Request chatRequest = new Request();
@@ -73,7 +73,7 @@ public class ChatUtil {
         serviceEntity.save(chatRequest);
         chatRequest.setSender(currentUser);
         chatRequest.setReceiver(user);
-        chatRequest.setSubject(chal);
+        chatRequest.setSubject(chat);
         serviceEntity.update(chatRequest);
 
         interactiveUtil.interactiveThrowChat(userId, chatRequest);
@@ -117,10 +117,11 @@ public class ChatUtil {
         } else {
             chat.setCreator(curDBUser);
             chat.setDate(new Date());
+            serviceEntity.save(chat);
             for (Integer id : selectedFriendsIds) {
+                throwChat(id, currentUser, chat.getId(), chat.getDescription());
                 chat.addClient((User) serviceEntity.findById(id, User.class));
             }
-            serviceEntity.save(chat);
 //            chat.addClient(curDBUser);
 //            serviceEntity.update(chat);
         }
@@ -221,4 +222,30 @@ public class ChatUtil {
 //        model.addAttribute("challenges", challenges);
 //        model.addAttribute("tag", tag.getName());
 //    }
+    public void setModelForAcceptChatDefinition(HttpServletRequest request, User user, Model model, int chalId) {
+        Chat chatToAccept = (Chat) serviceEntity.findById(chalId, Chat.class);
+        chatToAccept.addClient(user);
+        serviceEntity.update(chatToAccept); //dialect.setActions(actionsProvider.getActionsForProfile(user, user));
+    }
+
+    public void setModelForAcceptOrDeclineChat(HttpServletRequest request, User user, Model model, int requestId, boolean accept) {
+        Request challengeRequest = (Request) serviceEntity.findById(requestId, Request.class);
+        Chat chat = challengeRequest.getSubject();
+
+        if (accept) {
+            chat.addClient(user);
+            serviceEntity.update(chat);
+        }
+        challengeRequest.removeReceiver(user);
+        challengeRequest.removeSubject(chat);
+        User sender = challengeRequest.getSender();
+        challengeRequest.removeSender(sender);
+        /*serviceEntity.update(sender);*/
+
+        serviceEntity.update(challengeRequest);
+        serviceEntity.delete(challengeRequest);
+
+        dialect.setActions(actionsProvider.getActionsForProfile(user, user));
+    }
+
 }

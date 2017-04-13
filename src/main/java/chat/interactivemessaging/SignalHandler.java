@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 public class SignalHandler extends WebSocketServer {
 
     private static Logger logger = LoggerFactory.getLogger(SignalHandler.class);
-//    private RoomManager roomManager = new RoomManager();
 
     public SignalHandler(int port) {
         super(new InetSocketAddress(port));

@@ -1,6 +1,12 @@
 package chat.interactivemessaging;
 
+import chat.dbside.models.Chat;
+import chat.dbside.models.User;
+import chat.dbside.services.ini.MediaService;
 import chat.webside.controllers.CommonInteractionController;
+import chat.webside.dao.UsersDao;
+import chat.webside.interactive.model.InteractiveMessage;
+import chat.webside.model.UserProfile;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,23 +16,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RoomManager {
-    
+
     @Autowired
     CommonInteractionController commonInteractionController;
 
+    @Autowired
+    @Qualifier("EAVStorageServiceUser")
+    private MediaService serviceEntity;
+
+    @Autowired
+    private UsersDao usersDao;
+
     private static Logger logger = LoggerFactory.getLogger(RoomManager.class);
-    private Map<String, Room> rooms = new ConcurrentHashMap<String, Room>();
-    // <clientId, socket>
-    private Map<String, WebSocket> clientIdSocketMap = new ConcurrentHashMap<String, WebSocket>();
-    // <socket, clientId>
-    private Map<WebSocket, Client> socketClientMap = new ConcurrentHashMap<WebSocket, Client>();
+    private Map<String, Room> rooms = new ConcurrentHashMap<>();
+    private Map<String, WebSocket> clientIdSocketMap = new ConcurrentHashMap<>();
+    private Map<WebSocket, Client> socketClientMap = new ConcurrentHashMap<>();
 
     public Room getRoom(String key) {
         return rooms.get(key);
@@ -47,87 +57,64 @@ public class RoomManager {
         rooms.clear();
     }
 
-    /**
-     * 新客户加入房间
-     *
-     * @param socket 新加入的客户连接
-     * @param data 包含房间1信息
-     */
     private void joinEvent(String userId, JsonNode data) {
-        List<String> result = new ArrayList<String>();
+        InteractiveMessage messageDescriptor = new InteractiveMessage();
         String roomId = data.get(NodeKey.DATA_ROOM).asText();
         if (StringUtils.isEmpty(roomId)) {
             roomId = Constants.DEFAULT_ROOM_NAME;
         }
-        Room room = getRoom(roomId);
-        if (null != room && room.isRoomFull()) {
-            // TODO tell current client the room is already full
-        }
-        //String clientId = UUID.randomUUID().toString();
-        Client client = new Client(userId, roomId);
-        // 向房间其他成员发送新用户添加事件
-        if (null != room) {
-            StringBuilder sb = new StringBuilder("{\"eventName\":\"_new_peer\",\"data\":{\"socketId\":\"");
-            sb.append(userId).append("\"}}");
-            String message = sb.toString();
-            result.add(message);
+        Chat chat = (Chat) serviceEntity.findById(Integer.parseInt(roomId), Chat.class);
+        UserProfile userProfile = usersDao.getUserProfile(userId);
+        User user = (User) serviceEntity.findById(userProfile.getUserEntityId(), User.class);
+        if (chat.getCreator().equals(user) || chat.getMembers().contains(user)) {
+            Room room = getRoom(roomId);
+            Client client = new Client(userId, roomId);
+            if (null != room) {
+                StringBuilder message = new StringBuilder("{\"eventName\":\"_new_peer\",\"data\":{\"socketId\":\"");
+                message.append(userId).append("\"}}");
+                messageDescriptor.setMessage(message.toString());
+                for (String id : room.getAllClientId()) {
+                    messageDescriptor.addReceiver(id);
+                }
+                commonInteractionController.sendSomethingToSomebody(messageDescriptor);
+                messageDescriptor = new InteractiveMessage();
+                logger.info("broadcast _new_peer event: {}", message);
+            } else {
+                room = new Room(roomId);
+                rooms.put(roomId, room);
+            }
+            room.addClient(userId, client);
+            StringBuilder message = new StringBuilder("{\"eventName\":\"_peers\",\"data\":{\"connections\":[");
+            boolean hasOtherClient = false;
             for (String id : room.getAllClientId()) {
-                result.add(id);
+                if (!id.equals(userId)) {
+                    hasOtherClient = true;
+                    message.append("\"").append(id).append("\",");
+                }
             }
-            commonInteractionController.sendSomethingToSomebody(result);
-            result.clear();
-            // room.broadcastToAll(message);
-            logger.info("broadcast _new_peer event: {}", message);
-        } else {
-            room = new Room(roomId);
-            rooms.put(roomId, room);
-        }
-        room.addClient(userId, client);
-        //  clientIdSocketMap.put(clientId, socket);
-        //    socketClientMap.put(socket, client);
-        // 向当前成员发送 "_peers" 事件, 当前房间其他成员id和自己的id
-        StringBuilder sb = new StringBuilder("{\"eventName\":\"_peers\",\"data\":{\"connections\":[");
-        boolean hasOtherClient = false;
-        for (String id : room.getAllClientId()) {
-            if (!id.equals(userId)) {
-                hasOtherClient = true;
-                sb.append("\"").append(id).append("\",");
+            if (hasOtherClient) {
+                message.deleteCharAt(message.length() - 1);
             }
+            message.append("],\"you\":\"").append(userId).append("\"}}");
+            messageDescriptor.setMessage(message.toString());
+            messageDescriptor.addReceiver(userId);
+            commonInteractionController.sendSomethingToSomebody(messageDescriptor);
+            logger.info("send back to new client:{}", message);
         }
-        if (hasOtherClient) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        sb.append("],\"you\":\"").append(userId).append("\"}}");
-        String message = sb.toString();
-        result.add(message);
-        result.add(userId);
-        commonInteractionController.sendSomethingToSomebody(result);
-        // socket.send(message);
-        logger.info("send back to new client:{}", message);
     }
 
-    /**
-     * 向另一个成员发送 ice_candidate 信息
-     *
-     * @param socket 发送源
-     * @param data 包含要发送 给目标客户的 ice_candidate 信息和目标id
-     */
     private void iceCandidateEvent(String userId, JsonNode data) {
-        List<String> result = new ArrayList<>();
+        InteractiveMessage messageDescriptor = new InteractiveMessage();
         String targetId = data.get(NodeKey.DATA_SOCKET_ID).asText();
-        // Client client = socketClientMap.get(socket);
-        // WebSocket target = clientIdSocketMap.get(targetId);
         if (null != targetId) {
             String label = data.get(NodeKey.DATA_LABEL).asText();
             String candidate = data.get(NodeKey.DATA_CANDIDATE).asText();
-            StringBuilder sb = new StringBuilder("{\"eventName\":\"_ice_candidate\",\"data\":{\"label\":\"");
-            sb.append(label).append("\",\"candidate\":\"").append(candidate).append("\",\"socketId\":\"")
+            StringBuilder message = new StringBuilder("{\"eventName\":\"_ice_candidate\",\"data\":{\"label\":\"");
+            message.append(label).append("\",\"candidate\":\"").append(candidate).append("\",\"socketId\":\"")
                     .append(userId).append("\"}}");
-            String message = sb.toString();
-            result.add(message);
-            result.add(targetId);
-            commonInteractionController.sendSomethingToSomebody(result);
-            //target.send(message);
+            messageDescriptor.setMessage(message.toString());
+            messageDescriptor.addReceiver(targetId);
+            commonInteractionController.sendSomethingToSomebody(messageDescriptor);
             logger.info("send ice candidate to {} : {}", targetId, message);
         } else {
             logger.warn("socket({}) is nonexistent.");
@@ -135,19 +122,15 @@ public class RoomManager {
     }
 
     private void offerEvent(String userId, JsonNode data) {
-        List<String> result = new ArrayList<>();
+        InteractiveMessage messageDescriptor = new InteractiveMessage();
         String targetId = data.get(NodeKey.DATA_SOCKET_ID).asText();
-        // Client client = socketClientMap.get(socket);
-        // WebSocket target = clientIdSocketMap.get(targetId);
         if (null != targetId) {
             JsonNode sdp = data.get(NodeKey.DATA_SDP);
-            StringBuilder sb = new StringBuilder("{\"eventName\":\"_offer\",\"data\":{\"sdp\":");
-            sb.append(sdp.toString()).append(",\"socketId\":\"").append(userId).append("\"}}");
-            String message = sb.toString();
-            result.add(message);
-            result.add(targetId);
-            commonInteractionController.sendSomethingToSomebody(result);
-            // target.send(message);
+            StringBuilder message = new StringBuilder("{\"eventName\":\"_offer\",\"data\":{\"sdp\":");
+            message.append(sdp.toString()).append(",\"socketId\":\"").append(userId).append("\"}}");
+            messageDescriptor.setMessage(message.toString());
+            messageDescriptor.addReceiver(targetId);
+            commonInteractionController.sendSomethingToSomebody(messageDescriptor);
             logger.info("send offer to {} : {}", targetId, message);
         } else {
             logger.warn("socket({}) is nonexistent.");
@@ -155,19 +138,15 @@ public class RoomManager {
     }
 
     private void answerEvent(String userId, JsonNode data) {
-        List<String> result = new ArrayList<>();
+        InteractiveMessage messageDescriptor = new InteractiveMessage();
         String targetId = data.get(NodeKey.DATA_SOCKET_ID).asText();
-        // Client client = socketClientMap.get(socket);
-        //  WebSocket target = clientIdSocketMap.get(targetId);
         if (null != targetId) {
             JsonNode sdp = data.get(NodeKey.DATA_SDP);
-            StringBuilder sb = new StringBuilder("{\"eventName\":\"_answer\",\"data\":{\"sdp\":");
-            sb.append(sdp.toString()).append(",\"socketId\":\"").append(userId).append("\"}}");
-            String message = sb.toString();
-            result.add(message);
-            result.add(targetId);
-            commonInteractionController.sendSomethingToSomebody(result);
-            //target.send(message);
+            StringBuilder message = new StringBuilder("{\"eventName\":\"_answer\",\"data\":{\"sdp\":");
+            message.append(sdp.toString()).append(",\"socketId\":\"").append(userId).append("\"}}");
+            messageDescriptor.setMessage(message.toString());
+            messageDescriptor.addReceiver(targetId);
+            commonInteractionController.sendSomethingToSomebody(messageDescriptor);
             logger.info("send answer to {} : {}", targetId, message);
         } else {
             logger.warn("socket({}) is nonexistent.");
@@ -178,25 +157,29 @@ public class RoomManager {
         JsonNode node = JsonUtils.parse(message);
         String eventMethod = node.get(NodeKey.EVENT_KEY).asText();
         JsonNode data = node.get(NodeKey.DATA_KEY);
-        if (NodeKey.EVENT_JOIN.equals(eventMethod)) {
-            joinEvent(userId, data);
-        } else if (NodeKey.EVENT_ICE_CANDIDATE.equals(eventMethod)) {
-            iceCandidateEvent(userId, data);
-        } else if (NodeKey.EVENT_OFFER.equals(eventMethod)) {
-            offerEvent(userId, data);
-        } else if (NodeKey.EVENT_ANSWER.equals(eventMethod)) {
-            answerEvent(userId, data);
-        } else {
+        if (null == eventMethod) {
             logger.error("unknown event :{}", eventMethod);
-            // TODO socket 返回什么消息
+        } else {
+            switch (eventMethod) {
+                case NodeKey.EVENT_JOIN:
+                    joinEvent(userId, data);
+                    break;
+                case NodeKey.EVENT_ICE_CANDIDATE:
+                    iceCandidateEvent(userId, data);
+                    break;
+                case NodeKey.EVENT_OFFER:
+                    offerEvent(userId, data);
+                    break;
+                case NodeKey.EVENT_ANSWER:
+                    answerEvent(userId, data);
+                    break;
+                default:
+                    logger.error("unknown event :{}", eventMethod);
+                    break;
+            }
         }
     }
 
-    /**
-     * socket 连接断开, 清理相关数据, 向该连接所处房间发送离开广播
-     *
-     * @param socket
-     */
     public void removeSocket(WebSocket socket) {
         Client client = socketClientMap.remove(socket);
         String clientId = client.getId();
@@ -207,11 +190,9 @@ public class RoomManager {
         if (room.getClientCount() <= 0) {
             rooms.remove(roomId);
         } else {
-            StringBuilder sb = new StringBuilder("{\"eventName\":\"_remove_peer\",\"data\":{\"socketId\":\"");
-            sb.append(clientId).append("\"}}");
-            String message = sb.toString();
-        //    room.broadcastToAll(message);
-            logger.info("{} leaves the room {}, broadcast: {}.", clientId, roomId, message);
+            StringBuilder message = new StringBuilder("{\"eventName\":\"_remove_peer\",\"data\":{\"socketId\":\"");
+            message.append(clientId).append("\"}}");
+            logger.info("{} leaves the room {}, broadcast: {}.", clientId, roomId, message.toString());
         }
     }
 

@@ -27,14 +27,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.time.DateUtils;
-import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -46,6 +44,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
 public class CommonInteractionController {
+
+    @Autowired
+    private RoomManager roomManager;
 
     @Autowired
     private InteractiveRepository commonInteractiveHandler;
@@ -163,19 +164,15 @@ public class CommonInteractionController {
             template.convertAndSend("/user/" + resp + "/exchange/comment", message);
         }
     }
-    @Autowired
-    private RoomManager roomManager;
 
-    public void sendSomethingToSomebody(List<String> info) {
-        String message = info.get(0);
-        for (int i = 1; i < info.size(); i++) {
-            template.convertAndSend("/user/" + info.get(i) + "/exchange/webrtc", message);
-        }
-
+    public void sendSomethingToSomebody(InteractiveMessage messageDescriptor) {
+        messageDescriptor.getReceivers().forEach((receiver) -> {
+            template.convertAndSend("/user/" + receiver + "/exchange/webrtc", messageDescriptor.getMessage());
+        });
     }
 
     @MessageMapping("/wswebrtc.{username}")
-    public void webrtc(Principal p, @DestinationVariable("username") String username,String message) throws Exception {
+    public void webrtc(Principal p, @DestinationVariable("username") String username, String message) throws Exception {
         roomManager.eventDispatch(p.getName(), message);
 //if (p != null) {
 //            /**

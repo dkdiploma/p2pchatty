@@ -132,7 +132,25 @@ public class ChatController {
             @RequestParam("id") int chalId) {
         util.setModel(request, currentUser, model);
         User user = (User) serviceEntity.findById(util.getUserProfile(request.getSession(), currentUser == null ? null : currentUser.getName()).getUserEntityId(), User.class);
-        //  challengeDefUtil.setModelForAcceptChallengeDefinition(request, user, model, chalId);
+        chatUtil.setModelForAcceptChatDefinition(request, user, model, chalId);
+        return ControllerUtil.getPreviousPageByRequest(request).orElse("/");
+    }
+    @RequestMapping(value = "/accept", method = GET, produces = "text/plain;charset=UTF-8")
+    public String accept(HttpServletRequest request, Principal currentUser, Model model,
+            @RequestParam("id") int requestId) {
+        util.setModel(request, currentUser, model);
+        User user = util.getSignedUpUser(request, currentUser);
+        chatUtil.setModelForAcceptOrDeclineChat(request, user, model, requestId, true);
+        return ControllerUtil.getPreviousPageByRequest(request).orElse("/");
+    }
+
+    @RequestMapping(value = "/decline", method = GET, produces = "text/plain;charset=UTF-8")
+    public String decline(HttpServletRequest request, Principal currentUser,
+            Model model,
+            @RequestParam("id") int requestId) {
+        util.setModel(request, currentUser, model);
+        User user = util.getSignedUpUser(request, currentUser);
+        chatUtil.setModelForAcceptOrDeclineChat(request, user, model, requestId, false);
         return ControllerUtil.getPreviousPageByRequest(request).orElse("/");
     }
 

@@ -3,13 +3,11 @@ package chat.dbside.models;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import javax.persistence.*;
-import javax.validation.constraints.Future;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -22,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import chat.dbside.eav.EAVPersister;
 import chat.dbside.eav.collection.EAVCollectionPersister;
-import chat.interactivemessaging.Client;
 
 @Entity
 @EAVEntity
@@ -110,11 +107,6 @@ public class Chat extends BaseEntity {
         members.remove(user);
     }
     
-//    public void broadcastToAll(String message) {
-//        for (User user : members) {
-//            user.getSocket().send(message);
-//        }
-//    }
 
     public List<User> getMembers() {
         return members;
