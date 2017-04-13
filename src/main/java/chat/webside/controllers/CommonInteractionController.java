@@ -11,6 +11,7 @@ import chat.webside.controllers.util.TagsUtil;
 import chat.webside.controllers.util.UserUtil;
 import chat.webside.dao.UsersDao;
 import chat.webside.interactive.InteractiveRepository;
+import chat.webside.interactive.model.IntMessage;
 import chat.webside.interactive.model.InteractiveComment;
 import chat.webside.interactive.model.InteractiveMessage;
 import chat.webside.interactive.model.InteractiveVote;
@@ -167,7 +168,7 @@ public class CommonInteractionController {
 
     public void sendSomethingToSomebody(InteractiveMessage messageDescriptor) {
         messageDescriptor.getReceivers().forEach((receiver) -> {
-            template.convertAndSend("/user/" + receiver + "/exchange/webrtc", messageDescriptor.getMessage());
+            template.convertAndSend("/user/" + receiver + "/exchange/webrtc", new IntMessage(receiver, messageDescriptor.getMessage()));
         });
     }
 

@@ -47,24 +47,9 @@ var Interactive = {
 //            Interactive.stompClient.subscribe("/user/exchange/all", function (frame) {
 //            }, {"selector": "room = '" + example_webrtc_config.room + "'"});
             // subscribe to private signaling messages from other users
-         //   sendStompMessage({'message': {none: ''}, type: 'JOIN', fromUserID: '', toUserID: ''});
-
- //sendStompMessage({'message': {none: ''}, type: 'JOIN', fromUserID: '', toUserID: ''});
-
             Interactive.alreadyTry = false;
             console.log('Connected: ' + frame);
             Interactive.username = frame.headers['user-name'];
-
-            console.log("subscribe to /user/exchange/allchat");
-            Interactive.stompClient.subscribe("/user/exchange/allchat", function (resp) {
-                Interactive.chatHandler(resp);
-            });
-
-            console.log("subscribe to /user/exchange/private");
-            Interactive.stompClient.subscribe("/user/exchange/private", function (resp) {
-                Interactive.privateHandler(resp);
-            });
-
             if (interactiveNotification === true) {
                 console.log("subscribe to /user/exchange/notification");
                 Interactive.stompClient.subscribe("/user/exchange/notification", function (resp) {
@@ -100,41 +85,6 @@ var Interactive = {
             }, 5000);
         }
     },
-    chatHandler: function (frame) {
-//        console.log("Received message for all users");
-//        console.log(frame);
-//
-//        var signalingmessage = JSON.parse(frame.body);
-//        // check joins from other users and try to call them
-//        if ((frame.command == 'MESSAGE') && (signalingmessage['fromUserID'] != example_webrtc_config.ownUserId) && (signalingmessage['type'] == 'JOIN')) {
-//            // if equals 'JOIN' send  offer call to other users
-//            console.log('User "' + signalingmessage['fromUserID'] + '" joined chatroom "' + example_webrtc_config.room + '". Trying to establish video/voice chat.... ');
-//            webrtcClient.callChat(signalingmessage['fromUserID']);
-//        }
-//        ;
-    },
- //   privateHandler: function (frame) {
-//        console.log("Received private message");
-//        console.log(frame);
-//        if (frame.command == 'MESSAGE') {
-//            var signalingmessage = JSON.parse(frame.body);
-//            if (signalingmessage['type'] == 'CALL') {
-//                console.log('User "' + signalingmessage['fromUserID'] + '" calls... Accepting call...');
-//                console.log(signalingmessage);
-//                webrtcClient.answerchat(signalingmessage);
-//            } else if (signalingmessage['type'] == 'ANSWER') {
-//                console.log('User "' + signalingmessage['fromUserID'] + '" answered call...');
-//                console.log(signalingmessage),
-//                        webrtcClient.processSignalingMessage(signalingmessage);
-//            } else if (signalingmessage['type'] == 'SIGNALING') {
-//                console.log('Received signaling message from user "' + signalingmessage['fromUserID'] + '". Processing it...');
-//                console.log(signalingmessage),
-//                        webrtcClient.processSignalingMessage(signalingmessage);
-//            } else {
-//                alert('Unknown signalingmessage');
-//            }
-//        }
-//    },
     notificationHandler: function (resp) {
         var obj = JSON.parse(resp.body);
         if (obj.status === 'SUCCESS') {
@@ -246,7 +196,6 @@ var Interactive = {
             if (parent.find("input[name=idMainObject]").first().size() !== 1) {
                 idParent = parent.find("input[name=id]").first().val();
             }
-
             ObjSaved = JSON.stringify({
                 'idParent': idParent,
                 'mainObjectId': this.mainObjectId,

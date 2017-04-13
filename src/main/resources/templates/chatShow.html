@@ -25,6 +25,7 @@
         <div class="content-wrapper">
             <div class="inner-container container">
                 <div class="chalShowChallenge">
+                    <input type="hidden" id="avatarImage" th:value="${userProfile.getCommentImageEntity().getBase64()}" />
                     <div style="margin-top: 80px; " class="row">
                         <div class="section-header main-column">
                             <input id="mainObjectId" type="hidden" th:value="${chat.getId()}" name="id"/>
@@ -115,27 +116,7 @@
                     </div>
                 </div>
                 <div class="chalShowChallenge">
-                    <div class="row">
-                        <!--                        <div id="datachanneldialog" style="display:block">
-                                                    <div>	<p>
-                                                            <label>Send text to all peers: </label><input type="text" id="peerMessage" />
-                                                            <button id="sendPeerMessage" onclick="sendWebRTCDataChannelAll();">Send</button>
-                                                        </p>
-                                                    </div>
-                                                    <div>
-                                                        <p>
-                                                            <label>Received text from other peers</label> <br />
-                                                            <textarea id="receivedPeerMessages" rows="5" cols="50">
-                                                            </textarea>
-                                                        </p>
-                                                    </div>
-                                                </div>-->
-
-
-                        <!--                        <div id="chat">
-                                                    <input type="file" id="fileIpt" class="fileIpt"/>
-                                                    <button id="sendFileRTCBtn" class="sendFileBtn">File</button>
-                                                </div>-->
+                    <div class="row">                    
                         <div id="videos" style="display:none" >
                             <video id="me" autoplay="autoplay"></video>
                         </div>

@@ -88,13 +88,16 @@ var SkyRTC = function () {
         console.log("subscribe to /user/exchange/webrtc");
         Interactive.stompClient.subscribe("/user/exchange/webrtc", function (message) {
             var jjson = JSON.parse(message.body);
-            var json = JSON.parse(jjson);
-            if (json.eventName) {
-                that.emit(json.eventName, json.data);
-            } else {
-                that.emit("socket_receive_message", socket, json);
+            var json = JSON.parse(jjson.message);
+            if (jjson.userId == Interactive.username) {
+                var message = json;
+                if (message.eventName) {
+                    that.emit(message.eventName, message.data);
+                } else {
+                    that.emit("socket_receive_message", socket, message);
+                }
+                ;
             }
-            ;
         });
 
         var data = JSON.stringify(message);
