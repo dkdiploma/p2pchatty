@@ -10,6 +10,7 @@ var SkyRTC = function () {
                 "url": "stun:stun.l.google.com:19302"
             }]
     };
+    var roomID;
     var packetSize = 1000;
 
     /**********************************************************/
@@ -67,7 +68,16 @@ var SkyRTC = function () {
 
 
     /*************************Functional***************************/
-
+    $(window).unload(function () {
+        var destination = "/app/wswebrtc." + Interactive.username;
+        Interactive.stompClient.send(destination, {"content-type": "text/plain"},
+                JSON.stringify({
+                    "eventName": "__remove",
+                    "data": {
+                        "userId": Interactive.username,
+                        "room": this.roomId
+                    }}));
+    });
 
     skyrtc.prototype.connect = function (room) {
         // var socket,
@@ -75,6 +85,7 @@ var SkyRTC = function () {
         console.log(room);
         room = room || "";
         console.log(room);
+        roomID = room;
 //        socket = this.socket = new WebSocket(server);
 //        socket.onopen = function () {
 //            

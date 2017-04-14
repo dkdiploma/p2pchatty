@@ -17,7 +17,6 @@ import chat.common.AccessProp;
 import chat.dbside.models.Chat;
 import chat.dbside.models.Message;
 import chat.dbside.models.Image;
-import chat.dbside.models.Tag;
 import chat.dbside.models.User;
 import chat.dbside.property.PropertyDB;
 import chat.dbside.services.ini.MediaService;
@@ -43,7 +42,7 @@ public class InitialLoader {
         if (version == null) {
             iniFlag = true;
             version = new PropertyDB("version", "0");
-           // init(1, 2, 2, 4, 7);
+            // init(1, 2, 2, 4, 7);
             serviceProperty.save(version);
         }
         Integer nVersion = Integer.valueOf(version.getValue());
@@ -150,24 +149,6 @@ public class InitialLoader {
         return comment;
     }
 
-    public void createTags() {
-        Tag tag1 = new Tag();
-        tag1.setName("преодоление");
-        serviceEntityInit.save(tag1);
-        Tag tag2 = new Tag();
-        tag2.setName("шутка");
-        serviceEntityInit.save(tag2);
-        Tag tag4 = new Tag();
-        tag4.setName("смелость");
-        serviceEntityInit.save(tag4);
-        Tag tag5 = new Tag();
-        tag5.setName("безумие");
-        serviceEntityInit.save(tag5);
-        Tag tag6 = new Tag();
-        tag6.setName("борьба");
-        serviceEntityInit.save(tag6);
-    }
-
     public void init(int countOfUsers, int countOfChalDefs, int countOfInstanses, int countOfComments, int countOfEmbedence) {
         try {
             ImageStoreService.saveDefaultImage(new File("src/main/resources/static/images/photo_not_available.jpg"));
@@ -182,7 +163,6 @@ public class InitialLoader {
         images.add("src/main/resources/static/images/speed.jpg");
         images.add("src/main/resources/static/images/break.png");
         images.add("src/main/resources/static/images/AvaDefault.jpg");
-        createTags();
         for (int i = 0; i < countOfUsers; i++) {
             User userToCreate = new User();
             userToCreate.setRating(0);
@@ -211,7 +191,7 @@ public class InitialLoader {
             serviceEntityInit.update(userToCreate);
             for (int k = 0; k < countOfChalDefs; k++) {
                 Chat chalToCreate = new Chat();
-             //   chalToCreate.setRating(0);
+                //   chalToCreate.setRating(0);
                 chalToCreate.setName(generateRandomWords(1)[0] + "-challenge");
                 StringBuilder text = new StringBuilder();
                 for (String word : generateRandomWords(new Random().nextInt(20) + 2)) {

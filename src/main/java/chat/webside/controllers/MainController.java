@@ -10,7 +10,6 @@ import org.springframework.social.connect.ConnectionRepository;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.WebRequest;
 import chat.webside.controllers.util.SocialControllerUtil;
-import chat.webside.controllers.util.TagsUtil;
 import chat.webside.controllers.util.UserUtil;
 import chat.webside.dao.UsersDao;
 import chat.webside.model.UserProfile;
@@ -69,12 +68,9 @@ public class MainController {
 
     @Autowired
     private SessionRegistry sessionRegistry;
-    
+
     @Autowired
     private ChatUtil challengeDefUtil;
-    
-    @Autowired
-    private TagsUtil tagsUtil;
 
     @RequestMapping("/")
     public String home(HttpServletRequest request, Principal currentUser, Model model) {
@@ -82,14 +78,12 @@ public class MainController {
         challengeDefUtil.setModelForMain(request, currentUser, model);
         return "main";
     }
-    
+
     @RequestMapping("/chat")
     public String chat(HttpServletRequest request, Principal currentUser, Model model) {
-      
+
         return "index";
     }
-    
-
 
     @RequestMapping(value = "profile/edit", produces = "text/plain;charset=UTF-8")
     public String editProfile(HttpServletRequest request, Principal currentUser, Model model, @RequestParam("id") int userId) {
@@ -179,12 +173,4 @@ public class MainController {
 
         return "index";
     }
-    
-    @RequestMapping(value="tags", method=GET)
-    public String tags(HttpServletRequest request, Principal currentUser, Model model) {
-        util.setModel(request, currentUser, model);
-        tagsUtil.setModelForTags(request, currentUser, model);
-        return "tags";
-    }
-
 }

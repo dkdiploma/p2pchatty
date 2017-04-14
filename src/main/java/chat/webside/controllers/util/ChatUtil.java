@@ -3,7 +3,6 @@ package chat.webside.controllers.util;
 import chat.dbside.models.Chat;
 import chat.dbside.models.Image;
 import chat.dbside.models.Request;
-import chat.dbside.models.Tag;
 import chat.dbside.models.User;
 import chat.dbside.services.ini.MediaService;
 import chat.webside.authorization.UserActionsProvider;
@@ -178,7 +177,6 @@ public class ChatUtil {
             model.addAttribute("friends", currentUser.getFriends());
         }
         model.addAttribute("userProfile", currentUser);
-        model.addAttribute("tags", serviceEntity.getAll(Tag.class));
         //  model.addAttribute("selectedTags", challenge.getTags());
         messageUtil.setModelForComments(chat.getMessages(), request, currentUser, model);
     }
@@ -196,16 +194,10 @@ public class ChatUtil {
         model.addAttribute("challenge", challenge);
         model.addAttribute("image64", image);
         model.addAttribute("imageName", imageName);
-        model.addAttribute("tags", serviceEntity.getAll(Tag.class));
-        List<Tag> tags = new ArrayList<>();
-
     }
 
     public void setModelForMain(HttpServletRequest request, Principal currentUser, Model model) {
         List<Chat> challenges = serviceEntity.getAll(Chat.class);
-        // Collections.sort(challenges, Chat.COMPARE_BY_RATING);
-//        Chat mainChallenge = challenges.remove(0);
-        //  model.addAttribute("mainChallenge", mainChallenge);
         model.addAttribute("challenges", challenges);
         model.addAttribute("tag", "");
     }
@@ -241,10 +233,8 @@ public class ChatUtil {
         User sender = challengeRequest.getSender();
         challengeRequest.removeSender(sender);
         /*serviceEntity.update(sender);*/
-
         serviceEntity.update(challengeRequest);
         serviceEntity.delete(challengeRequest);
-
         dialect.setActions(actionsProvider.getActionsForProfile(user, user));
     }
 

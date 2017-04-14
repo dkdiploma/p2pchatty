@@ -2,12 +2,10 @@ package chat.webside.controllers;
 
 import chat.dbside.models.Chat;
 import chat.dbside.models.Message;
-import chat.dbside.models.Tag;
 import chat.dbside.models.User;
 import chat.dbside.services.ini.MediaService;
 import chat.interactivemessaging.RoomManager;
 import chat.webside.controllers.util.ChatUtil;
-import chat.webside.controllers.util.TagsUtil;
 import chat.webside.controllers.util.UserUtil;
 import chat.webside.dao.UsersDao;
 import chat.webside.interactive.InteractiveRepository;
@@ -67,9 +65,6 @@ public class CommonInteractionController {
 
     @Autowired
     private UserUtil userUtil;
-
-    @Autowired
-    private TagsUtil tagsUtil;
 
     private static final Logger logger
             = LoggerFactory.getLogger(CommonInteractionController.class);
@@ -174,7 +169,9 @@ public class CommonInteractionController {
 
     @MessageMapping("/wswebrtc.{username}")
     public void webrtc(Principal p, @DestinationVariable("username") String username, String message) throws Exception {
-        roomManager.eventDispatch(p.getName(), message);
+        if (p != null) {
+            roomManager.eventDispatch(p.getName(), message);
+        }
 //if (p != null) {
 //            /**
 //             * set the sender on server side so nobody is able to impersonate
@@ -303,37 +300,4 @@ public class CommonInteractionController {
         }
         return result;
     }
-
-    @RequestMapping(value = "/getTags", produces = "application/json")
-    @ResponseStatus(HttpStatus.OK)
-    public @ResponseBody
-    AjaxResponseBody searchTags(@RequestBody SearchCriteria search) {
-
-        AjaxResponseBody result = new AjaxResponseBody();
-
-        if (search != null) {
-            List<Tag> filteredTags = tagsUtil.filterTags(search.getFilter());
-
-            if (filteredTags.size() > 0) {
-                Map<Integer, NameAndImage> tagsAjax = new HashMap<>();
-                for (Tag tag : filteredTags) {
-                    NameAndImage nameAndImage = new NameAndImage();
-                    nameAndImage.setName(tag.getName());
-                    nameAndImage.setImage(String.valueOf(tag.getChallenges().size()));
-                    tagsAjax.put(tag.getId(), nameAndImage);
-                }
-                result.setCode("200");
-                result.setMsg("");
-                result.setResult(tagsAjax);
-            } else {
-                result.setCode("204");
-                result.setMsg("No tags");
-            }
-        } else {
-            result.setCode("400");
-            result.setMsg("Search criteria is empty");
-        }
-        return result;
-    }
-
 }

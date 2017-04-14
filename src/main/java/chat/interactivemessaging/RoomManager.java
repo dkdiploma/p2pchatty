@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
-import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,26 +34,9 @@ public class RoomManager {
 
     private static Logger logger = LoggerFactory.getLogger(RoomManager.class);
     private Map<String, Room> rooms = new ConcurrentHashMap<>();
-    private Map<String, WebSocket> clientIdSocketMap = new ConcurrentHashMap<>();
-    private Map<WebSocket, Client> socketClientMap = new ConcurrentHashMap<>();
 
     public Room getRoom(String key) {
         return rooms.get(key);
-    }
-
-    public Room clearRoom(String key) {
-        Room room = rooms.get(key);
-        for (String clientId : room.getAllClientId()) {
-            WebSocket socket = clientIdSocketMap.remove(clientId);
-            socketClientMap.remove(socket);
-        }
-        return rooms.remove(key);
-    }
-
-    public void clearAllRooms() {
-        clientIdSocketMap.clear();
-        socketClientMap.clear();
-        rooms.clear();
     }
 
     private void joinEvent(String userId, JsonNode data) {
@@ -173,6 +155,9 @@ public class RoomManager {
                 case NodeKey.EVENT_ANSWER:
                     answerEvent(userId, data);
                     break;
+                case NodeKey.EVENT_REMOVE:
+                    removeSocket(userId, data);
+                    break;
                 default:
                     logger.error("unknown event :{}", eventMethod);
                     break;
@@ -180,23 +165,29 @@ public class RoomManager {
         }
     }
 
-    public void removeSocket(WebSocket socket) {
-        Client client = socketClientMap.remove(socket);
-        String clientId = client.getId();
-        clientIdSocketMap.remove(clientId);
-        String roomId = client.getRoomId();
-        Room room = rooms.get(roomId);
-        room.removeClient(clientId);
-        if (room.getClientCount() <= 0) {
-            rooms.remove(roomId);
-        } else {
-            StringBuilder message = new StringBuilder("{\"eventName\":\"_remove_peer\",\"data\":{\"socketId\":\"");
-            message.append(clientId).append("\"}}");
-            logger.info("{} leaves the room {}, broadcast: {}.", clientId, roomId, message.toString());
-        }
-    }
+    public void removeSocket(String userId, JsonNode data) {
+        String requestedUser = data.get(NodeKey.USER_ID).asText();
+        if (userId.equals(requestedUser)) {
+            Room room = rooms.get(data.get(NodeKey.DATA_ROOM).asText());
+            for (String clientId : room.getAllClientId()) {
+                if (clientId.equals(userId)) {
+                    room.removeClient(clientId);
+                }
+            }
+            if (room.getClientCount() <= 0) {
+                rooms.remove(data.get(NodeKey.DATA_ROOM).asText());
+            } else {
+                StringBuilder message = new StringBuilder("{\"eventName\":\"_remove_peer\",\"data\":{\"socketId\":\"");
+                message.append(userId).append("\"}}");
 
-    public Map<WebSocket, Client> getSocketClientMap() {
-        return socketClientMap;
+                InteractiveMessage messageDescriptor = new InteractiveMessage();
+                messageDescriptor.setMessage(message.toString());
+                for (String clientId : room.getAllClientId()) {
+                    messageDescriptor.addReceiver(clientId);
+                }
+                commonInteractionController.sendSomethingToSomebody(messageDescriptor);
+                logger.info("{} leaves the room {}, broadcast: {}.", userId, data.get(NodeKey.DATA_ROOM).asText(), message.toString());
+            }
+        }
     }
 }

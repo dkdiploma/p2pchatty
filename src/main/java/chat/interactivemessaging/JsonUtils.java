@@ -9,12 +9,12 @@ import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.logging.Level;
 
 public class JsonUtils {
 
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+
     static {
         objectMapper.configure(Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
     }
@@ -24,8 +24,6 @@ public class JsonUtils {
             return objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
             logger.warn("object to json string is failed : {}", e.getMessage());
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(JsonUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return "{}";
     }

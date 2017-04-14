@@ -34,7 +34,6 @@ public class WebSocketConfig extends AbstractWebSocketMessageBrokerConfigurer {
     @Bean
     public InteractiveEventListener interactiveEventListener(SimpMessagingTemplate messagingTemplate) {
         InteractiveEventListener listener = new InteractiveEventListener(messagingTemplate, interactiveRepository());
-
         return listener;
     }
 

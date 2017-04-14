@@ -11,7 +11,7 @@ public class Room {
 
     private static Logger logger = LoggerFactory.getLogger(Room.class);
     private String id;
-    private Map<String, Client> clients = new ConcurrentHashMap<String, Client>();
+    private Map<String, Client> clients = new ConcurrentHashMap<>();
 
     public Room(String id) {
     }
