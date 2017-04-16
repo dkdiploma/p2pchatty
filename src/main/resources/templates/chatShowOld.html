@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>P2PChatty</title>
+        <link rel="icon" type="image/png" href="../images/infiLogo.png"/>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="webrtctopic" th:content="${webrtcTopic}"/>
+        <meta name="webrtcprivatequeue" th:content="${webrtcPrivateQueue}"/>
+        <link th:replace="fragments/commonDependencies :: commonDependencies" th:remove="tag"/>
+        <link rel="stylesheet" href="../css/pageLoader.css"/>
+        <link rel="stylesheet" href="../css/bootstrap-datetimepicker.css" />
+        <script src="../js/jquery.min.js"></script>
+        <tr th:if="${currentUserConnection != null}">
+            <script src="../js/Interactive/enable/likeEnable.js"></script>
+            <script src="../js/Interactive/enable/commentEnable.js"></script>
+        </tr>
+        <link rel="stylesheet" href="../css/style.css"/>
+    </head>
+    <body>
+        <div th:replace="fragments/header :: userInfo"/>
+        <div th:replace="fragments/util/loader::loader"/>
+        <div class="content-wrapper">
+            <div class="inner-container container">
+                <div class="chalShowChallenge">
+                    <input type="hidden" id="avatarImage" th:value="${userProfile.getCommentImageEntity().getBase64()}" />
+                    <div style="margin-top: 80px; " class="row">
+                        <div class="section-header main-column">
+                            <input id="mainObjectId" type="hidden" th:value="${chat.getId()}" name="id"/>
+                            <div class="chal-photo col-lg-2 col-md-2 col-sm-2 col-xs-4">
+                                <img style="width: 100%;" class="img-responsive img-rounded" th:src="${chat.getMainImageEntity().getBase64()}"/>
+                            </div> 
+                            <h2  th:text="${#strings.toUpperCase(chat.getName())}" style="display: inline-block;margin-top: 10px; margin-bottom: 5px;"/>   
+                            <form auth:can="EDIT_CHALLENGE" method="GET" action="update" style='display: inline-block; margin-left: 20px;'>
+                                <input type="hidden" th:value="${chat.getId()}" name="id"/>
+                                <a onclick='this.parentNode.submit();'>
+                                    <span class="glyphicon glyphicon-wrench" style="font-size: 30px;" />
+                                </a>
+                            </form>
+                            <div class="box-content col-lg-10 col-md-10 col-sm-10 col-xs-8">
+                                <h4 id="desc" class="col-md-12" style="margin-top: 0px;
+                                    margin-bottom: 0px;" th:text="${chat.getDescription()}"/>
+                            </div>
+                            <input type="hidden" name="id" th:value="${chat.getId()}" />
+                        </div>                     
+                    </div> 
+                    <hr style="margin-bottom: 5px;" class="hr_divider"/>
+                    <div class="row">
+                        <div class="col-md-3 col-sm-4 col-xs-6"><i class="glyphicon glyphicon-calendar"> </i>
+                            <span th:text="${#dates.format(chat.getDate(), 'dd/MM/yyyy HH:mm')}" />
+                        </div>
+                        <div class="col-md-3 col-sm-3 col-xs-6">
+                            <form action="/profile">
+                                <input type="hidden" name="id" th:value="${chat.getCreator().getId()}" />
+                                <a onclick="this.parentNode.submit()"><i class="glyphicon glyphicon-user"></i>
+                                    <span th:text="${chat.getCreator().getName()}" />
+                                </a>
+                            </form>
+                        </div> 
+                    </div>
+                    <hr style="margin-bottom: 15px;" class="hr_divider"/>
+                    <!--                    <div class="row">-->
+                    <!--                        <div style="margin-top: 10px;" class="chal_column"  th:if="${isChalDef and listOfAcceptors.size() gt 0}">
+                         <div class="row">
+                             <h3 class="col-lg-8 col-md-8 col-sm-9 col-xs-9" style="margin-top: 5px; margin-bottom: 5px;" th:text="#{acceptorsLabelShow}" />
+                             <form  th:if="${showAcceptorsExtendenceButton}" th:id="'show_all_acceptors'" method="GET" action="/acceptors">
+                                 <input type="hidden" id="chal-id" name="id" th:value="${chat.getId()}" />
+                                 <div style="margin-top:13px;" class="pull-right"> 
+                                     <i class="glyphicon glyphicon-new-window"> </i>
+                                     <span style="cursor: pointer"  onclick="this.parentNode.parentNode.submit()" th:text="#{showAllAcceptorsLabel}"></span>
+                                 </div>
+                             </form>
+                         </div>
+                         <div th:each="acceptor : ${listOfAcceptors}" >
+                             <div class="col-lg-2 col-md-2 col-sm-4 col-xs-4">
+                                 <div>
+                                     <div style="max-width: 50px;max-height:50px;  margin-left: auto;                                             margin-right: auto;">
+                                         <form action="/profile">
+                                             <img style="cursor: pointer" onclick="this.parentNode.submit()" th:src="${acceptor.getCommentImageEntity().getBase64()}" class="img-rounded img-responsive" />
+                                             <input type="hidden" th:value="${acceptor.getId()}" name="id"/>
+                                         </form>
+                                     </div>
+                                     <span  class="text-center chal-meta" th:text="${acceptor.getName()}"></span>                                      
+                                 </div>
+                             </div>
+                         </div>
+                     </div>-->
+                    <!--                    </div>-->
+                </div>
+                <div class="chalShowChallenge" th:unless="${currentUserConnection == null}">
+                    <div class="row">
+                        <div class="main-column">
+                            <div>
+                                <h3 style="margin-bottom: 5px;" th:text="#{newCommentLabel}"/>
+                            </div>
+                            <input type="hidden" id="new-comment-header" th:value="#{newCommentHeader}" />
+                            <form th:object="${message}" th:class="${chat.getIsToPersist()} ? 'send-comment':'sendInstant'" th:action="@{/newinscomment}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <input type="hidden" name="idMainObject" th:value="${chat.getId()}"/>
+                                <input type="hidden" id="userName" th:value="${currentUserProfile.getName()}"/>
+                                <input type="text" id="newMessageText" class="form-control" th:placeholder="#{messagePlaceholder}" th:field="*{text}" />
+                                <div class="alert alert-danger commentError" style="display:none;">
+                                    <p th:text="#{emptyCommentError}">Name Error</p>    
+                                </div>
+                                <div class="alert alert-danger" th:if="${#fields.hasErrors('text')}">
+                                    <p  th:errors="*{text}">Name Error</p>    
+                                </div>
+                                <input type="submit" class="btn btn-default" th:value="#{sendMessage}" />
+                                <input type="file" id="fileIpt" class="fileIpt"/>
+                                <button id="sendFileRTCBtn" class="sendFileBtn">File</button>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="chalShowChallenge">
+                    <div class="row">                    
+                        <div id="videos" style="display:none" >
+                            <video id="me" autoplay="autoplay"></video>
+                        </div>
+                        <div id="files" style="display:none">
+                        </div>
+
+                        <div class="main-column">
+                            <input th:if="${userProfile!=null}"  type="hidden" id="current-user-id" th:value="${userProfile.getId()}" />
+                            <input th:if="${userProfile!=null}"  type="hidden" id="user-id" th:value="${userProfile.getId()}" />
+                            <div>
+                                <h3 style="display: inline-flex;" th:text="#{messagesCount}+': '"></h3><h3 style="display: inline;" id="commentCounter" th:text="${messagesCount}"></h3>
+                            </div>
+                            <div class="msgs" id="msgs"></div>
+                            <div class="comments-list">
+                                <ul th:if="${userProfile!=null}" class="comments_left_shift media" id="templateMainComment" style="display: none;">
+
+                                    <li style="display: none;" id="templateComment">
+                                        <li  th:replace="fragments/modelElementsViews/message :: submessage(message =${hiddenMessage}, depth=0)" />
+                                    </li>
+                                    <hr class="comments_divider"/>
+                                </ul>
+                                <ul class="comments_left_shift media" th:each="message : ${messages}" >
+                                    <li th:replace="fragments/modelElementsViews/message :: submessage(message =${message}, depth=0)"/>                                 
+                                    <hr class="comments_divider"/>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+        <div th:replace="fragments/customModal::modalBody" />
+        <!--modal for friends-->
+        <div th:replace="fragments/modals/friendsmodal::friendsmodal" />
+        <!--        <script src="../js/adapter.js"></script>
+                <script src="../js/webrtc.js"></script>
+                <script type="text/javascript">
+                                                // <![CDATA[
+                                                var example_webrtc_config = {
+                                                    ownUserId: null, /** set after successful web socket connect **/
+                                                    topic: $("meta[name='webrtctopic']").attr("content"), /** topic for publishing join messages **/
+                                                    privatequeue: '/user' + $("meta[name='webrtcprivatequeue']").attr("content"), /** private queue for user signaling messages **/
+                                                    room: 'demoroom', /** room **/
+                                                    enable_videovoicechat: false, /** enable video/voice chat functionality of webrtc **/
+                                                    enable_datachannel: true, /** enable data channel of webrtc **/
+                                                    datachannel_name: 'demochannel', /** name of the data channel, if enabled **/
+                                                    datachannel_options: null, /** options for data channel, if enabled **/
+                                                    pc_config: {"iceServers": [{"url": "stun:stun.l.google.com:19302"}]}, /* webrtc configuration stun/turn server */
+                                                    pc_constraints: {optional: [{DtlsSrtpKeyAgreement: true}]}, /* web rtc connection constraints */
+                                                    receiveConstraints: {'mandatory': {'OfferToReceiveAudio': true, 'OfferToReceiveVideo': true}, 'optional': [{'VoiceActivityDetection': false}]}, /* webrtc voice/video chat parameter **/
+                                                    user_media: {"audio": true, "video": true}, /* media to request from user */
+                                                    video_outgoing: "#localvideos", /*  (own video of the user) is placed within element(s) according to jquery selector */
+                                                    video_incoming: "#remotevideos", /*  (videos of chat partners) is placed within element(s) according to jquery selector */
+                                                    class_outgoing: "classoutgoingvideo", /*  CSS class of the own video of the user (useful for borders etc.) */
+                                                    class_incoming: "classincomingvideo", /*  CSS class of the videos of the other users (useful for borders etc.) */
+                                                    sendsignalingmessage_handler: func_webrtc_sendsignalingmessagehandler, /** handler for sending a signaling message to other users function(signalingmessage) */
+                                                    receivedata_handler: func_webrtc_receivedatahandler, /* receive data handler function(message) */
+                                                    error_handler: func_webrtc_errorhandler, /* error handling function (errorcode, errormessage, peerid) */
+                                                    status_handler: func_webrtc_statushandler /* status handling function (statuscode, statusmessage, peerid) */
+                                                };
+        
+                                                var stompClient = null;
+                                                var webrtcClient = null;
+        
+                                                function setConnected() {
+        //                                            document.getElementById('joinbutton').disabled = true;
+        //                                            document.getElementById('leavebutton').disabled = false;
+        //                                            document.getElementById('datachanneldialog').style.display = 'none';
+        //                                            document.getElementById('videodialog').style.display = 'block';
+                                                }
+        
+                                                function setDataChannelEnabled() {
+                                                    document.getElementById('receivedPeerMessages').value = '';
+                                                    document.getElementById('datachanneldialog').style.display = 'block';
+                                                }
+        
+                                                function setDataChannelDisabled() {
+                                                    document.getElementById('receivedPeerMessages').value = '';
+                                                    document.getElementById('datachanneldialog').style.display = 'none';
+                                                }
+        
+                                                function setDisconnected() {
+                                                    document.getElementById('joinbutton').disabled = false;
+                                                    document.getElementById('leavebutton').disabled = true;
+                                                    document.getElementById('datachanneldialog').style.display = 'none';
+                                                    document.getElementById('videodialog').style.display = 'none';
+                                                }
+        
+        //                                     
+                                                function sendWebRTCDataChannelAll() {
+                                                    for (var prop in webrtcClient.peers) {
+                                                        if (webrtcClient.peers.hasOwnProperty(prop)) {
+                                                            webrtcClient.sendDataChannel(webrtcClient.peers[prop].userid, document.getElementById('peerMessage').value);
+                                                        }
+                                                    }
+                                                    document.getElementById('peerMessage').value = '';
+                                                    console.log("Send");
+                                                }
+        
+        
+                                                function disableWebRTCDataChannel() {
+                                                    datachannelenabled = false;
+                                                    // disable data channel with all current peers
+                                                    for (var prop in webrtcClient.peers) {
+                                                        if (webrtcClient.peers.hasOwnProperty(prop)) {
+                                                            if (webrtcClient.peers[prop].connected == true) {
+                                                                webrtcClient.disableDataChannel(webrtcClient.peers[prop].userid);
+                                                            }
+                                                        }
+                                                    }
+                                                    // make it disabled
+                                                    setDataChannelDisabled();
+                                                }
+        
+                                                function disconnect() {
+                                                    setDisconnected();
+                                                    // hang up all webrtc peers
+                                                    for (var prop in webrtcClient.peers) {
+                                                        if (webrtcClient.peers.hasOwnProperty(prop)) {
+                                                            webrtcClient.closeChat(webrtcClient.peers[prop].userid);
+                                                        }
+                                                    }
+                                                    // disable user media
+                                                    webrtcClient.disableUserMedia();
+                                                    // disconnect from websocket
+                                                    stompClient.disconnect();
+                                                }
+        
+                                                /** sends a message via broker to a topic with certain properties (room name)
+                                                 **/
+                                                function sendStompMessage(message) {
+                                                    Interactive.stompClient.send("/app/wswebrtc."+example_webrtc_config.ownUserId, {"room": example_webrtc_config.room}, JSON.stringify(message));
+                                                }
+        
+                                                /** Peer Connection Data Handler **/
+                                                function func_webrtc_receivedatahandler(message) {
+                                                    setDataChannelEnabled(); // as soon as we receive something we can assume the data channel has been enabled
+                                                    console.log('Received data channel message from user "' + message['fromUserID'] + '"\n ' + message['body']);
+                                                    $("#receivedPeerMessages").val($("#receivedPeerMessages").val() + '\n' + message['fromUserID'] + ': ' + message['body']);
+                                                }
+        
+                                                /** Send signaling message via signaling channel **/
+                                                function func_webrtc_sendsignalingmessagehandler(signalingmessage) {
+                                                    console.log('Sending signaling message to User "' + signalingmessage['toUserID'] + '"...');
+                                                    console.log(JSON.stringify(signalingmessage));
+                                                    sendStompMessage(signalingmessage);
+                                                }
+        
+                                                /** Error Handler for WebRTC **/
+                                                function func_webrtc_errorhandler(errorcode, errormessage, peerid) {
+                                                    if (peerid == null) {
+                                                        alert('WebRTC Error (Code: ' + errorcode + '): ' + errormessage);
+                                                    } else {
+                                                        alert('WebRTC Error with peer "' + peerid + '" (Code: ' + errorcode + '): ' + errormessage);
+                                                    }
+                                                }
+        
+                                                /** Status Handler for WebRTC **/
+                                                function func_webrtc_statushandler(statuscode, statusmessage, peerid) {
+                                                    if (peerid == null) {
+                                                        console.log("WebRTC Status (Code: " + statuscode + "): " + statusmessage);
+                                                    } else {
+                                                        console.log('WebRTC Status with peer "' + peerid + '" (Code: ' + statuscode + '): ' + statusmessage + peerid);
+                                                    }
+                                                    if (statuscode == webrtc_status_codes.DATACHANNEL_OPEN) {
+                                                        setDataChannelEnabled();
+                                                    }
+        
+                                                }
+        
+                                                function initialize() {
+                                                    webrtcClient = new WebRTC(example_webrtc_config);
+                                                    webrtcClient.enableUserMedia();
+                                                }
+        
+                                                initialize();
+                                                //    connect();
+        
+                                                // ]]>
+                </script>-->
+
+        <tr th:if="${currentUserConnection != null}">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.0.3/sockjs.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+            <script src="../js/Interactive/mainInteractive.js"></script>
+            <script src="../js/Interactive/enable/notificationEnable.js"></script>
+            <script src="../js/globalContext.js"></script>
+        </tr>
+        <script type='text/javascript' src='../js/ajaxSearch.js'></script>
+        <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
+        <script src="../js/csslayoutextenders/chalShowLayout.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+        <script src="../js/dateAndImageHelper.js"></script>
+        <script src="//yastatic.net/es5-shims/0.0.2/es5-shims.min.js"></script>
+        <script src="//yastatic.net/share2/share.js"></script>
+        <script type="text/javascript" src="../js/sharepanel.js"></script>
+
+        <script type="text/javascript" src="../js/SkyRTC-client.js"></script>
+        <script type="text/javascript" src="../js/webrtcHelper.js"></script>
+
+    </body>
+</html>

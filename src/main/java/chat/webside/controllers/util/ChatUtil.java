@@ -91,7 +91,6 @@ public class ChatUtil {
 
     public void setModelForNewOrUpdatedChalShow(Chat chat, HttpServletRequest request,
             User currentUser, UserProfile userProfile, Model model, String image, List<Integer> selectedFriendsIds) {
-
         User curDBUser = ((User) serviceEntity.findById(userProfile.getUserEntityId(), User.class));
 
         if (chat.getId() != null) {

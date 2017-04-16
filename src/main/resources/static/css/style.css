@@ -447,6 +447,9 @@ label {
         position:fixed;
         width:350px;
     }
+    .affix.chal_side{
+        width:270px;
+    }
     .not_display_on_sm{
         display:none;
     }
@@ -461,6 +464,9 @@ label {
         top:70px;
         width:320px;
         position:fixed;
+    }
+    .affix.chal_side{
+        width:240px;
     }
 }
 @media screen and (min-width: 768px) {
@@ -521,6 +527,9 @@ label {
         top:70px;
         position:fixed;
         width:350px;
+    }
+    .affix.chal_side{
+        width:270px;
     }
 }
 

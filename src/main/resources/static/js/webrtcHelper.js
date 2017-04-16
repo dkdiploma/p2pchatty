@@ -95,7 +95,7 @@ rtc.on("connected", function () {
 //imitation
     rtc.createStream({
         "video": false,
-        "audio": true
+        "audio": false
     });
 });
 

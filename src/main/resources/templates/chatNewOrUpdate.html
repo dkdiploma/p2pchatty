@@ -69,7 +69,9 @@
                                         <span/>
                                     </div>  
                                     <label th:text="#{descriptionLabel}" class="col-md-2 control-label" />
-                                    <input type="checkbox" th:field="*{isToPersist}" />
+                                    <div class="chal-photo col-md-10">
+                                        <input type="checkbox" th:field="*{isToPersist}" />
+                                    </div>
                                 </div>
                                 <form id="search-form">
                                     <input type="hidden" id="csrf-token" name="_csrf" th:value="${_csrf.token}" />

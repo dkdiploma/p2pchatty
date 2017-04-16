@@ -8,8 +8,6 @@ public class Client {
     public Client() {
     }
 
-    ;
-
     public Client(String id, String roomId) {
         this.id = id;
         this.roomId = roomId;
