@@ -24,12 +24,12 @@
                         <div class="section-header col-md-12">
                         </div> 
                     </div> 
-                    <div class="row">
+                    <div class="row animated fadeInLeft">
                         <div th:switch="*{id}"> 
                             <h1 th:text="#{addingTitle}" th:case="null" />
                             <h1 th:text="#{updatingTitle}" th:case="*" /> 
                         </div>
-                        <div class="col-md-12">
+                        <div class="col-md-12 animated fadeInRight">
                             <div class="chalShowChallenge" style="padding-top:15px;">
                                 <div class="row">
                                     <input type="hidden" th:field="*{id}" />
@@ -87,8 +87,6 @@
                                     </ul>
                                 </div>
                             </div>
-
-
                             <div th:switch="*{id}"> 
                                 <input th:case="null" class="btn btn-default text-center" type="submit" name="k" th:value="#{createNewButton}" style="float: right;"/>
                                 <input th:case="*" class="btn btn-default text-center" type="submit" name="k" th:value="#{updateButton}" style="float: right;"/>
@@ -103,7 +101,6 @@
 
         <div th:replace="fragments/modals/challengeImagesModal::challengeimagesmodal" />
         <div th:replace="fragments/customModal::modalBody" />
-
         <script th:replace="fragments/commonDependencies :: commonJS" th:remove="tag"/>
         <script type="text/javascript" src="../js/moment-with-locales.min.js"></script>
         <script type="text/javascript" src="../js/moment.js"></script>
