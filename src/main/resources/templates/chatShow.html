@@ -116,7 +116,7 @@
                                         <p  th:errors="*{text}">Name Error</p>    
                                     </div>
                                     <input type="submit" class="btn btn-default" th:value="#{sendMessage}" />
-                                    <button id="sendFileRTCBtn" class="sendFileBtn btn btn-default pull-right" th:value="#{sendFileButton}">File</button>
+                                    <input id="sendFileRTCBtn" class="sendFileBtn btn btn-default pull-right" style="margin-left: 10px;" th:value="#{sendFileButton}" />
                                     <input type="file" id="fileIpt" th:title="#{uploadFileButton}" style="margin-right: 10px;" class="fileIpt pull-right"/>
                                     <script type='text/javascript'>
                                         $('input[type=file]').bootstrapFileInput();

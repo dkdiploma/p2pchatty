@@ -179,15 +179,15 @@ changeContentOfInstantComment = function (cont, obj) {
         return false;
     });
     $(mediaBody).find("small").remove();
-//    $(mediaBody).find("small").find("a").click(function () {
-//        $(lastDiv).toggle();
-//    });
     var newreplyForm = $(lastDiv).find("form[action='/newreply']").first();
     newreplyForm.remove();
-    newreplyForm.parent().remove();
-    var voteFor = $(mediaBody).find("form[action='/comment/voteFor']");
+
+    var voteFor = $(mediaBody).find("form[action='/message/voteFor']");
     voteFor.remove();
-    var voteAgainst = $(mediaBody).find("form[action='/comment/voteAgainst']");
-    voteAgainst.remove();
+    var voteAgainst = $(mediaBody).find("form[action='/message/voteAgainst']");
+    voteAgainst.css('display', 'none');
+     voteAgainst.remove();
+    // newreplyForm.parent().remove();
+    // voteAgainst.parent().style.'none';
 
 }

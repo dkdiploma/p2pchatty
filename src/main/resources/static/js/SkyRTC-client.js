@@ -120,14 +120,6 @@ var SkyRTC = function () {
         $(window).unload(function () {
             ClosePeers();
         });
-//        socket.onmessage = function (message) {
-//            var json = JSON.parse(message.data);
-//            if (json.eventName) {
-//                that.emit(json.eventName, json.data);
-//            } else {
-//                that.emit("socket_receive_message", socket, json);
-//            }
-//        };
 
 ////        socket.onerror = function (error) {
 ////            that.emit("socket_error", error, socket);

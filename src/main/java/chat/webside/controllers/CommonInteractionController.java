@@ -116,7 +116,7 @@ public class CommonInteractionController {
         }
         Set<String> candidates = commonInteractiveHandler.getCommonConnection4Object(message.getMainObjectId());
         for (String resp : candidates) {
-            template.convertAndSend("/user/" + resp + "/exchange/like", message);
+            template.convertAndSendToUser(resp, "/exchange/like", message);
         }
     }
 
@@ -157,13 +157,13 @@ public class CommonInteractionController {
         }
         Set<String> candidates = commonInteractiveHandler.getCommonConnection4Object(mainObjectId);
         for (String resp : candidates) {
-            template.convertAndSend("/user/" + resp + "/exchange/comment", message);
+            template.convertAndSendToUser(resp, "/exchange/comment", message);
         }
     }
 
     public void sendSomethingToSomebody(InteractiveMessage messageDescriptor) {
         messageDescriptor.getReceivers().forEach((receiver) -> {
-            template.convertAndSend("/user/" + receiver + "/exchange/webrtc", new IntMessage(receiver, messageDescriptor.getMessage()));
+            template.convertAndSendToUser(receiver, "/exchange/webrtc", new IntMessage(receiver, messageDescriptor.getMessage()));
         });
     }
 
@@ -172,37 +172,6 @@ public class CommonInteractionController {
         if (p != null) {
             roomManager.eventDispatch(p.getName(), message);
         }
-//if (p != null) {
-//            /**
-//             * set the sender on server side so nobody is able to impersonate
-//             * other users *
-//             */
-//            message.setFromUserID(p.getName());
-//            /**
-//             * forward it to all users if no destination user is set *
-//             */
-//            if ("".equals(message.getToUserID())) {
-//                Set<String> candidates = commonInteractiveHandler.getCommonConnection4Object(18);
-//
-//                for (String resp : candidates) {
-//                    template.convertAndSend("/user/" + resp + "/exchange/allchat", message);
-//                    template.convertAndSend("/user/" + resp + "/exchange/like", message);
-//                }
-//            } else {
-//                /**
-//                 * forward it to the private queue of the destination user if it
-//                 * is a private signaling message *
-//                 */
-//                Set<String> candidates = commonInteractiveHandler.getCommonConnection4Object(18);
-//
-//                for (String resp : candidates) {
-//                    if (resp.equals(message.getToUserID())) {
-//                        template.convertAndSend("/user/" + resp + "/exchange/private", message);
-//                        template.convertAndSend("/user/" + resp + "/exchange/like", message);
-//                    }
-//                }
-//                // template.convertAndSendToUser(message.getToUserID(), "/user/" + message.getToUserID() + "/exchange/private", message);
-//            }
     }
 
     @RequestMapping(value = "/getFriends", produces = "application/json")
@@ -234,48 +203,14 @@ public class CommonInteractionController {
         return result;
     }
 
-//    @RequestMapping(value = "/getChallenges", produces = "application/json")
-//    @ResponseStatus(HttpStatus.OK)
-//    public @ResponseBody
-//    AjaxResponseBody searchChallengesViaAjax(@RequestBody SearchCriteria search) {
-//
-//        AjaxResponseBody result = new AjaxResponseBody();
-//
-//        if (search != null) {
-//            List<Chat> challenge
-//
-//            if (challenges.size() > 0) {
-//                Map<Integer, NameAndImage> chalNames = new HashMap<>();
-//                for (Chat challenge : challenges) {
-//                    NameAndImage nameAndImage = new NameAndImage();
-//                    nameAndImage.setName(challenge.getName());
-//                    chalNames.put(challenge.getId(), nameAndImage);
-//                }
-//                result.setCode("200");
-//                result.setMsg("");
-//                result.setResult(chalNames);
-//            } else {
-//                result.setCode("204");
-//                result.setMsg("No challenges");
-//            }
-//        } else {
-//            result.setCode("400");
-//            result.setMsg("Search criteria is empty");
-//        }
-//        return result;
-//    }
     @RequestMapping(value = "/getUsers", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     public @ResponseBody
     AjaxResponseBody searchUsers(@RequestBody SearchCriteria search) {
-
         AjaxResponseBody result = new AjaxResponseBody();
-
         if (search != null) {
-
             User currentUser = (User) serviceEntity.findById(search.getUserId(), User.class);
             List<User> filteredUsers = userUtil.filterUsers(search.getFilter(), currentUser);
-
             if (filteredUsers.size() > 0) {
                 Map<Integer, NameAndImage> usersAjax = new HashMap<>();
                 for (User user : filteredUsers) {
